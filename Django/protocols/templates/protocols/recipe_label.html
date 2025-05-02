@@ -1,13 +1,19 @@
-{% include "inventory/parts/header.html" %}
+{% extends "protocols/parts/recipe-base.html" %}
+{% load general_extras %}
+
+{% block content %}
 {% load static %}
 <link rel="stylesheet" type="text/css" media="print" href="{% static 'css/style_inventory_print.css' %}"/>
 {% if recipe %}
-{% include "./parts/recipe-header.html" %}
 <div id="label">
     <div id="label-main">
         <div id="label-info">
             <p id="label-name" data-initval="{{recipe}}">
-                {{recipe}}
+                {{recipe.name}}
+            </p>
+            <p id="label-code">
+                <span class="label-name">Code</span>
+                <span class="label-value">{{recipe.code}}</span>
             </p>
             <p id="label-created">
                 <span class="label-name">Date</span>
@@ -16,7 +22,7 @@
             <p id="label-components">
                 <span class="label-name">Components</span>
                 {% for component in recipe.components.all %}
-                <span class="label-value">{{component.reactive}} - <span class="recipe-component-value" data-initval="{{component.concentration}}">{{component.concentration}}</span> {{component.concentration_unit}}</span>
+                <span class="label-value">{{component.reactive}} - <span class="recipe-component-value" data-initval="{{component.concentration}}">{{component.concentration}}</span> {{CONCENTRATION_UNITS_dict|get_element_by_key:component.concentration_unit}}</span>
                 {% endfor %}
             </p>
         </div>
@@ -27,4 +33,4 @@
 {% else %}
 <div class="alert alert-warning">No recipe found.</div>
 {% endif %}
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

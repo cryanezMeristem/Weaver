@@ -1,4 +1,5 @@
-{% include "inventory/parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
+{% block content %}
 <div class="alert alert-info">
     {% if url_name %}
         Set your current project in order to continue to {{url_name}}
@@ -9,4 +10,4 @@
 {% with user.project_members.all as projects %}
 {% include "organization/parts/choose_project.html" %}
 {% endwith %}
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

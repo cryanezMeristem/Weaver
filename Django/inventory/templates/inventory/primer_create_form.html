@@ -1,8 +1,10 @@
-{% include "./parts/header.html" %}
-<div id="header">
-    <h1>Primer / Create</h1>
-</div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_type %}Primer{% endblock %}
+{% block header_object_name %}Create{% endblock %}
+
+{% block content %}
 <div id="form-primer">
-    {% include "./inventory_create_form.html" %}
+    {% include "inventory/parts/inventory_create_form.html" %}
 </div>
-{% include "./parts/footer.html" %}
+{% endblock %}

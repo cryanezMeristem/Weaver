@@ -1,31 +1,30 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
 {% load general_extras %}
 {% load static %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 ps-0 m-0 align-middle">Stocks</span>
-    </div>
-    <div id="header-links">
+
+{% block header_object_name %}Stocks{% endblock %}
+{% block header_object_links %}
         <a target="_blank" href="{% url 'glycerolstock_create' %}" class="btn btn-primary{% if not on_current_project_member_can_write_or_admin %} disabled{% endif %}" role="button"><i
                 class="bi bi-plus"></i></a>
         <a target="_blank" href="{% url 'glycerolstock_boxes' %}" class="btn btn-warning" role="button"><i
                 class="bi bi-archive"></i></a>
         <a target="_blank" href="{% url 'glycerolstock_qr' %}" class="btn btn-info" role="button"><i
                 class="bi bi-upc-scan"></i></a>
-    </div>
-    {% include "./parts/show_from_all_projects.html" %}
-</div>
+        {% include "inventory/parts/show_from_all_projects.html" %}
+{% endblock %}
+
+{% block content %}
 {% include "./form_results.html" %}
 {% if has_glycerolstocks %}
 <div id="glycerolstocks-list">
     <div id="glycerolstocks-tables">
         <div class="row">
             <div class="col-4">
-                {% include "./parts/table_search.html" with object_type="GS" %}
+                {% include "inventory/parts/table_search.html" with object_type="GS" %}
             </div>
             <div class="col-8 d-flex flex-row-reverse">
                 <div id="glycerolstocks-filter" class="pe-table-filter">
-                    {% include "./parts/table_filters.html" %}
+                    {% include "inventory/parts/table_filters.html" %}
                 </div>
             </div>
         </div>
@@ -37,4 +36,4 @@
 {% else %}
 <div class="alert alert-warning">No GStocks found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

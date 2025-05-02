@@ -9,6 +9,14 @@ CHECK_STATES = (
     (2, 'Correct')
 )
 
+LIGATION_STATES = (
+    (0, 'Waiting parts or supplies'),
+    (1, 'Ligated'),
+    (2, 'Ligate - Low priority'),
+    (3, 'Ligate - Mid priority'),
+    (4, 'Ligate - High priority')
+)
+
 # bootstrap defaults
 COLORS = (
     ('primary', 'Blue'),

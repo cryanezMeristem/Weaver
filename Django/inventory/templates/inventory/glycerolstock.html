@@ -1,7 +1,8 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/glycerolstock-base.html" %}
 {% load general_extras %}
+
+{% block content %}
 {% if glycerolstock %}
-{% include "./parts/glycerolstock-header.html" %}
 {% include "./form_results.html" %}
 <table class="table table-hover">
     <thead>
@@ -19,20 +20,22 @@
         <th scope="row">Strain description</th>
         <td>{{glycerolstock.strain.description}}</td>
     </tr>
+    {% if glycerolstock.plasmid %}
     <tr>
         <th scope="row">Plasmid</th>
         <td>
-        {% if glycerolstock.plasmid %}
-            <a href="{% url 'plasmid' plasmid_id=glycerolstock.plasmid.id %}" class="btn btn-outline-secondary" role="button">
-                <span>{{glycerolstock.plasmid.name}}</span>
-                <span class="badge text-bg-light border fw-light p-1 fw-light m-0 align-middle">{{glycerolstock.plasmid.idx}}</span>
-                <i class="bi bi-clipboard copy_clipboard" data-cc="{{glycerolstock.plasmid}}"></i>
-            </a>
-        {% else %}
-            No plasmid
-        {% endif %}
+            {% with pr=glycerolstock.plasmid %}
+                {% include "inventory/parts/plasmid-button.html" %}
+            {% endwith %}
         </td>
     </tr>
+    <tr>
+        <th scope="row">Colony</th>
+        <td>
+            {{glycerolstock.plasmid.working_colony_text}}
+        </td>
+    </tr>
+    {% endif %}
     <tr>
         <th scope="row">Parent</th>
         <td>
@@ -108,4 +111,4 @@
 {% else %}
 <div class="alert alert-warning">No glycerolstock found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

@@ -1,8 +1,10 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/primer-base.html" %}
 {% load primer_extras %}
 {% load humanize %}
+
+
+{% block content %}
 {% if primer %}
-{% include "./parts/primer-header.html" %}
 {% include "./form_results.html" %}
 {% with primer.sequence_5|add:primer.sequence_3 as complete_sequence %}
 <table class="table table-hover">
@@ -59,4 +61,4 @@
 {% else %}
 <div class="alert alert-warning">No primer found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

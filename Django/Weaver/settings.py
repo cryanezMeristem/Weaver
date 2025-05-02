@@ -20,12 +20,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/3.1/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'vxle1ys(%&0bp)vy59px)$^)yz@=xhc3ylek=y2rk_qnsx9n^w'
+SECRET_KEY = '3kaqgjcur0e7^%5fzt_0qewi^s=kz9clj68qsgtg4^_kwxo==2'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['127.0.0.1']
+ALLOWED_HOSTS = ['192.168.1.64', '127.0.0.1', '192.168.200.178']
 
 # Application definition
 
@@ -41,17 +41,24 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'mathfilters',
+    # "corsheaders",
 ]
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    # "corsheaders.middleware.CorsMiddleware",
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+#delete INTERNAL_IPS
+# INTERNAL_IPS = [
+#     '192.168.1.64',
+# ]
 
 ROOT_URLCONF = 'Weaver.urls'
 
@@ -123,4 +130,9 @@ STATIC_URL = '/static/'
 
 STATICFILES_DIRS = [
    os.path.join(BASE_DIR, "static"),
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "http://192.168.1.64:3000",
+    "http://localhost:3000",
 ]

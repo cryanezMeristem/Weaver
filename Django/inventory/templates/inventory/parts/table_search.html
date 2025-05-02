@@ -1,7 +1,18 @@
 <div class="table_search">
     <h4>Search</h4>
     <input id="table_search-input" type="text" placeholder="Search {{object_type}} ...">
-    <button id="table_search-clear" type="button" class="btn btn-outline-secondary ms-2">Clear</button>
+    <button id="table_search-target-any" type="button" class="btn active btn-outline-primary ms-2 table_search-target" data-bs-original-title="Search on all fields" aria-label="Search on all fields" data-bs-toggle="tooltip" data-bs-placement="top" data-type="all">
+        <i class="bi bi-border-width"></i>
+    </button>
+    <button id="table_search-target-id" type="button" class="btn btn-outline-primary ms-2 table_search-target" data-bs-original-title="Search only for ID" aria-label="Search only for ID" data-bs-toggle="tooltip" data-bs-placement="top" data-type="idx">
+        <i class="bi bi-hash"></i>
+    </button>
+    <button id="table_search-target-text" type="button" class="btn btn-outline-primary ms-2 table_search-target" data-bs-original-title="Search only for name" aria-label="Search only for name" data-bs-toggle="tooltip" data-bs-placement="top" data-type="name">
+        <i class="bi bi-fonts"></i>
+    </button>
+    <button id="table_search-clear" type="button" class="btn btn-outline-secondary ms-2" data-bs-original-title="Clear" aria-label="Clear" data-bs-toggle="tooltip" data-bs-placement="top" onclick="expandName()">
+        <i class="bi bi-x-lg"></i>
+    </button>
     {% if object_type == "plasmids" %}
     <div class="col form-check form-switch">
         <small class="text-secondary"><input id="table_search-expand"  role="switch" class="form-check-input" type="checkbox" onclick="expandName()"> Expand names</small>

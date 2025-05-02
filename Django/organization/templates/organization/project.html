@@ -1,5 +1,6 @@
-{% include "inventory/parts/header.html" %}
-{% include "./parts/project-header.html" %}
+{% extends "organization/parts/project-base.html" %}
+
+{% block content %}
 {% load humanize %}
 {% if edit_error %}
 <div class="alert alert-danger">{{edit_error}}</div>
@@ -38,6 +39,12 @@
                 <tr>
                     <th scope="row">Visibility</th>
                     <td>{% if project.public %}Public{% else %}Private{% endif %} (Not implemented)</td>
+                </tr>
+                <tr>
+                    <th scope="row">Assembly standard</th>
+                    <td>
+                        {{project.assembly_standard}}
+                    </td>
                 </tr>
                 <tr>
                     <th scope="row">Currently active?</th>
@@ -93,4 +100,4 @@
 <p>
     <a href="{% url 'projects' %}" class="btn btn-warning" role="button"><i class="bi bi-arrow-return-left"></i> All projects</a>
 </p>
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

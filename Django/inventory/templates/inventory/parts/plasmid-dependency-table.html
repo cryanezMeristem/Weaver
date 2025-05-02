@@ -1,0 +1,47 @@
+{% if pd %}
+<h4>{{pd_title}}</h4>
+<table class="table">
+    <thead>
+        <tr>
+            <th scope="col">Plasmid</th>
+            <th scope="col">Validation state</th>
+            <th scope="col">Colony</th>
+        </tr>
+    </thead>
+    <tbody>
+    {% if pd|length <= 1 %}
+        <tr>
+            <td>{{pd}}</td>
+            {% if pd.is_validated %}
+            <td>
+                <span class="badge bg-success">Validated</span>
+            </td>
+            <td>{{pd.working_colony}}</td>
+            {% else %}
+            <td>
+                <span class="badge bg-warning">Not validated</span>
+            </td>
+            <td></td>
+            {% endif %}
+        </tr>
+    {% else %}
+        {% for p in pd %}
+        <tr>
+            <td>{{p}}</td>
+            {% if p.is_validated %}
+            <td>
+                <span class="badge bg-success">Validated</span>
+            </td>
+            <td>{{p.working_colony}}</td>
+            {% else %}
+            <td>
+                <span class="badge bg-warning">Not validated</span>
+            </td>
+            <td></td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+    {% endif %}
+    </tbody>
+</table>
+{% endif %}

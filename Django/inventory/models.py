@@ -8,10 +8,12 @@ from .custom.box import BOX_ROWS
 from .custom.box import BOX_COLUMNS
 from .custom.general import FWD_OR_REV
 from .custom.general import CHECK_STATES
+from .custom.general import LIGATION_STATES
 from .custom.general import COLORS
 from Bio.Restriction.Restriction_Dictionary import rest_dict, suppliers
 from organization.models import Project
 from django.dispatch import receiver
+from .custom.standards import assembly_standards
 
 
 from .validators import clustal_validate
@@ -139,6 +141,7 @@ class Box(models.Model):
     class Meta:
         ordering = ['name']
 
+
 class Plasmid(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     idx = models.IntegerField(blank=True, null=True, editable=False)
@@ -151,14 +154,22 @@ class Plasmid(models.Model):
     inserts = models.ManyToManyField('self', blank=True, symmetrical=False, related_name='+')
     intended_use = models.CharField(max_length=200)
     type = models.ForeignKey(PlasmidType, models.SET_NULL, blank=True, null=True)
-    level = models.IntegerField(blank=True, null=True)
-    description = models.CharField(max_length=1000, blank=True)
+    level = models.IntegerField(blank=True, null=True, choices=(
+        (None, 'Not defined'),
+        (0, 'Level 0'),
+        (1, 'Level 1'),
+        (2, 'Level 2'),
+        (3, 'Level 3'),
+        (4, 'Level 4')
+    ))
+    description = models.CharField(max_length=1000, blank=True, help_text="Allows markdown")
     project = models.ForeignKey(Project, on_delete=models.CASCADE)
     created_on = models.DateField(auto_now_add=False, default=datetime.date.today)
 
     reference_sequence = models.BooleanField(blank=True, default=0)
-    under_construction = models.BooleanField(blank=True, default=0)
     public_visibility = models.BooleanField(blank=True, default=0)
+
+    ligation_state = models.IntegerField(choices=LIGATION_STATES, default=2)
 
     qr_id = ShortUUIDField(default=shortuuid.uuid(), editable=False)
 
@@ -186,11 +197,11 @@ class Plasmid(models.Model):
     class Meta:
         ordering = ['name']
 
-    def working_colony_text_for_ligation(self):
-        if self.under_construction:
-            return "UC"
-        elif self.reference_sequence:
+    def working_colony_text_short(self):
+        if self.reference_sequence:
             return "RS"
+        elif self.ligation_state != 1:
+            return "UC"
         elif self.is_validated():
             if self.working_colony:
                 return "c"+str(self.working_colony) + "-V"
@@ -203,10 +214,10 @@ class Plasmid(models.Model):
                 return "NS"
 
     def working_colony_text(self):
-        if self.under_construction:
-            return "Under construction"
-        elif self.reference_sequence:
+        if self.reference_sequence:
             return "Reference sequence"
+        elif self.ligation_state != 1:
+            return "Under construction"
         elif self.is_validated():
             if self.working_colony:
                 return str(self.working_colony) + " (Validated)"
@@ -219,45 +230,46 @@ class Plasmid(models.Model):
                 return "Not set"
 
     def is_validated(self):
+        if self.reference_sequence:
+            return None
+        if self.ligation_state != 1:
+            return False
         if self.colonypcr_state != 1 and self.digestion_state != 1 and self.sequencing_state != 1:
             return True
         return False
 
+    def get_check_state(self):
+        if self.reference_sequence:
+            return 'r'
+        if self.is_validated():
+            return 'v'
+        return 'c'
+
     def save(self, *args, **kwargs):
         if not self.idx:
-            last_plasmid_idx = Plasmid.objects.order_by("idx").last().idx
-            if last_plasmid_idx:
-                new_idx = last_plasmid_idx + 1
-            else:
-                new_idx = 1
-            self.idx = new_idx
+            try:
+                last_plasmid_idx = Plasmid.objects.order_by("idx").last().idx
+                if last_plasmid_idx:
+                    self.idx = last_plasmid_idx + 1
+                else:
+                    self.idx = 1
+            except:
+                self.idx = 1
         super(Plasmid, self).save(*args, **kwargs)
 
     def get_insert_of(self):
-        # ToDo optimize query
-        insert_of = []
-        for plasmid in Plasmid.objects.all():
-            for insert in plasmid.inserts.all():
-                if insert == self:
-                    insert_of.append(plasmid)
+        return Plasmid.objects.filter(inserts__in=[self])
 
-        return insert_of
     def get_backbone_of(self):
-        # ToDo optimize query
-        backbone_of = []
-        for plasmid in Plasmid.objects.all():
-            if plasmid.backbone == self:
-                backbone_of.append(plasmid)
-
-        return backbone_of
+        return Plasmid.objects.filter(backbone=self)
 
     def ligation_concentration(self):
         if self.computed_size:
             if self.type:
                 if str(self.type) == "Insert":
-                    return str(round(self.computed_size / 300, 1)) + " ng / ul"
+                    return str(round(self.computed_size / 100, 1)) + " ng / ul"
                 elif str(self.type) == "Receiver":
-                    return str(round(self.computed_size / 600, 1)) + " ng / ul"
+                    return str(round(self.computed_size / 300, 1)) + " ng / ul"
                 else:
                     return "Plasmid type no formula"
             else:
@@ -266,13 +278,10 @@ class Plasmid(models.Model):
             return "No plasmid computed size"
 
     def recommended_enzyme_for_create(self):
-        # ToDo generalize
-        output = "No level set"
-        if self.level is not None:
-            output = "SapI"
-            if self.level % 2:
-                output = "BsaI"
-        return output
+        try:
+            return assembly_standards[self.project.assembly_standard]['enzymes'][self.level]
+        except:
+            return "No level set"
 
     def getPlasmidResistanceForLigation(self):
         if self.selectable_markers.count() == 1:
@@ -289,16 +298,16 @@ class Plasmid(models.Model):
         tab = "	"
         ligation_raw = self.__str__() + tab
         if self.backbone:
-            ligation_raw += self.backbone.__str__() + " [" + self.backbone.working_colony_text_for_ligation() + "]" + tab
+            ligation_raw += self.backbone.__str__() + " [" + self.backbone.working_colony_text_short() + "]" + tab
 
         inserts = []
         for plasmid in self.inserts.all():
-            inserts.append(plasmid.__str__() + " [" + plasmid.working_colony_text_for_ligation() + "]")
+            inserts.append(plasmid.__str__() + " [" + plasmid.working_colony_text_short() + "]")
 
         if self.level:
             ligation_raw = ligation_raw + " + ".join(inserts) + tab + tab +\
                            self.recommended_enzyme_for_create() + tab +\
-                           self.getPlasmidResistanceForLigation().capitalize()
+                           self.getPlasmidResistanceForLigation().upper()
         else:
             if self.level == 0:
                 ligation_raw = "Level 0 ligation is not supported"
@@ -306,6 +315,16 @@ class Plasmid(models.Model):
                 ligation_raw = "Level not set"
 
         return ligation_raw
+
+    def dependencies_validated(self):
+        if self.backbone:
+            if not self.backbone.is_validated():
+                return False
+        if self.dependencies_validated:
+            for pi in self.inserts.all():
+                if not pi.is_validated():
+                    return False
+        return True
 
 
 @receiver(models.signals.post_delete, sender=Plasmid)

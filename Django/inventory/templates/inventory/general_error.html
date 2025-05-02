@@ -1,3 +1,7 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_name %}Error{% endblock %}
+
+{% block content %}
 <div class="alert alert-danger">{{error}}</div>
-{% include "./parts/footer.html" %}
+{% endblock %}

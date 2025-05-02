@@ -1,8 +1,9 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/plasmid-base.html" %}
 {% load static %}
 {% load humanize %}
+
+{% block content %}
 {% if plasmid %}
-{% include "./parts/plasmid-header.html" %}
 <form method="post" enctype="multipart/form-data">
     {% csrf_token %}
     <p class="mb-4">Define new plasmid name (duplicate of {{plasmid}}):</p>
@@ -12,4 +13,4 @@
 {% else %}
 <div class="alert alert-warning">No plasmid found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

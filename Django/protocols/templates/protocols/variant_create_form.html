@@ -1,0 +1,15 @@
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_type %}Variant{% endblock %}
+{% block header_object_name %}Create{% endblock %}
+{% block header_object_adds %}Recipe: {{recipe}}{% endblock %}
+{% block header_object_links %}
+        <a href="{% url 'recipe' recipe_id=recipe.id %}" class="btn btn-outline-warning" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Return"><i class="bi bi-arrow-return-left"></i></a>
+{% endblock %}
+
+{% block content %}
+{% include "inventory/form_results.html" %}
+<div id="form-recipe">
+    {% include "inventory/parts/inventory_create_form.html" %}
+</div>
+{% endblock %}

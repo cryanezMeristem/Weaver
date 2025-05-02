@@ -2,6 +2,20 @@ $(document).ready(function(){
     onReady();
 });
 function onReady(){
+    $('.prevent_default').click(function(e){
+        e.preventDefault();
+    });
+    /* dark mode */
+    $('#btnSwitchDarkMode').unbind("click");
+    $('#btnSwitchDarkMode').click(function(e){
+        if (Cookies.get('dark_mode')  === 'true'){
+            Cookies.set('dark_mode', false, { expires: 400 });
+        }
+        else{
+            Cookies.set('dark_mode', true, { expires: 400 });
+        }
+        window.location.reload();
+    });
     /* copy_clipboard */
     $('.copy_clipboard-child').click(function(e){
         e.preventDefault();
@@ -71,7 +85,13 @@ function onReady(){
             return;
         }
         filter_items.each(function(){
-            if($(this).hasClass('filter-'+filter_id)){
+            var match = $(this).hasClass('filter-'+filter_id);
+            if(!match){
+                var find_in = $(this).children('td:first-child').children('a').attr('data-name');
+                if(find_in)
+                    match = find_in.startsWith(filter_id);
+            }
+            if(match){
                 $(this).removeClass('filter-hide');
             } else{
                 $(this).addClass('filter-hide');

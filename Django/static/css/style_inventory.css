@@ -119,9 +119,15 @@ form#fasta{
     border:none;
 }
 
+form#logout_form {
+    border: none;
+    padding: 0;
+    display: contents;
+}
+
 .glycerolstock_box-inner {
     padding: 2rem;
-    border: solid 2px #20411d;
+    border: solid 2px #ccc;
     border-radius: 1rem;
 }
 
@@ -143,7 +149,7 @@ cursor: pointer;
 .box-position-sample,
 .box-position-used-sample,
 table.glycerolstock_box-detail td{
-background: #ddd;
+background: #ccc;
 border-radius: 50%;
 }
 
@@ -176,7 +182,8 @@ display:none;
 
 .dropdown-enzymes,
 .dropdown-download,
-.dropdown-align {
+.dropdown-align,
+.dropdown-propagate {
     display: inline-block;
 }
 
@@ -189,4 +196,18 @@ display:none;
 
 .copy_clipboard{
     cursor: pointer;
+}
+
+span.plasmid-opts {
+    background: #eee;
+    margin-left: -.5rem;
+    padding: .2rem .3rem;
+    border-radius: .2rem;
+    border: solid 1px #ccc;
+    margin-right: .5rem;
+    opacity: 0.5;
+}
+
+span.plasmid-opts:hover {
+    opacity: 1;
 }

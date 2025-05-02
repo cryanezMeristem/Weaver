@@ -1,0 +1,9 @@
+{% extends "inventory/parts/base.html" %}
+
+{% if primer %}
+{% block header_object_type %}Restriction Enzyme{% endblock %}
+{% block header_object_name %}{{restrictionenzyme}}{% endblock %}
+{% block header_object_links %}
+        <a href="{% url 'restrictionenzymes' %}" class="btn btn-outline-warning" role="button"><i class="bi bi-arrow-return-left"></i></a>
+{% endblock %}
+{% endif %}

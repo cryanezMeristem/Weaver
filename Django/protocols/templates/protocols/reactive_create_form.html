@@ -1,10 +1,14 @@
-{% include "inventory/parts/header.html" %}
-<div id="header">
-    <h1>Create a new Reactive</h1>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_type %}Reactive{% endblock %}
+{% block header_object_name %}Create{% endblock %}
+{% block header_object_links %}
     {% include './parts/recipe_return_link.html' %}
-</div>
+{% endblock %}
+
+{% block content %}
 {% include "inventory/form_results.html" %}
 <div id="form-recipe">
-    {% include "inventory/inventory_create_form.html" %}
+    {% include "inventory/parts/inventory_create_form.html" %}
 </div>
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

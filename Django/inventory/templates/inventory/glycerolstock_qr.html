@@ -1,13 +1,13 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
 {% load general_extras %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 ps-0 m-0 align-middle">Glycerol Stocks / QR</span>
-    </div>
-</div>
+
+{% block header_object_type %}Stocks{% endblock %}
+{% block header_object_name %}QR{% endblock %}
+
+{% block content %}
 <form method="post">
     {% csrf_token %}
     {{glycerol_qr_nput_form.as_p}}
     <input type="submit" value="Go">
 </form>
-{% include "./parts/footer.html" %}
+{% endblock %}

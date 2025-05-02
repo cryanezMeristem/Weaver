@@ -1,7 +1,8 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/plasmid-base.html" %}
 {% load static %}
+
+{% block content %}
 {% if plasmid %}
-{% include "./parts/plasmid-header.html" %}
 {% if fragments %}
 <div id="digest-result" class="result">
     <h2>Digest result</h2>
@@ -169,4 +170,4 @@
 {% else %}
 <div class="alert alert-warning">No plasmid found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

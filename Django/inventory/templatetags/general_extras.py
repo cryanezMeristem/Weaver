@@ -1,5 +1,6 @@
 from django import template
 from organization.models import Project
+from markdown import markdown as render_markdown
 
 register = template.Library()
 
@@ -25,9 +26,15 @@ def startswith(text, starts):
         return True
     return False
 
+
 @register.filter
 def divide(value, arg):
     try:
         return int(value) / int(arg)
     except (ValueError, ZeroDivisionError):
         return None
+
+
+@register.filter
+def markdown(value):
+    return render_markdown(value)

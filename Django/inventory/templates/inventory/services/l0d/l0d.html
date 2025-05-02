@@ -1,9 +1,8 @@
-{% include "../../parts/header.html" %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 ps-0 m-0 align-middle">L0 part designer</span>
-    </div>
-</div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_name %}L0 Designer{% endblock %}
+
+{% block content %}
 {% include "inventory/parts/page-info.html" with text="Design your primers to domesticate L0 parts" %}
 
 <noscript>You need to enable JavaScript to run this app.</noscript>
@@ -19,4 +18,4 @@
     <a href="https://currentprotocols.onlinelibrary.wiley.com/doi/10.1002/cpmb.115" target="_blank">Generic - MoClo</a>
 </div>
 
-{% include "../../parts/footer.html" %}
+{% endblock %}

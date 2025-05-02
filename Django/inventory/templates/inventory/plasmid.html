@@ -1,8 +1,9 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/plasmid-base.html" %}
 {% load general_extras %}
 {% load humanize %}
+
+{% block content %}
 {% if plasmid %}
-{% include "./parts/plasmid-header.html" %}
 {% if L0SequenceInputForm %}
 <div class="alert alert-warning">Input L0 sequence and select OHs</div>
 <form action="#" method="post">
@@ -21,6 +22,19 @@
 {% include "./form_results.html" %}
 {% if plasmid_create_result %}
 <div class="alert alert-{{plasmid_create_result.1}}">{{plasmid_create_result.0}}</div>
+{% endif %}
+{% if not plasmid_update_computed_size_result %}
+<div class="alert alert-danger">Unable to update plasmid computed size. Check sequence file.</div>
+{% endif %}
+{% if plasmid_propagate_results %}
+<div class="alert alert-info">
+    <div class="h6">Derivative plasmids sequences re-build result</div>
+    <ul>
+        {% for plasmid_propagate_result in plasmid_propagate_results %}
+        <li><strong><a href="{% url 'plasmid' plasmid_id=plasmid_propagate_result.0.id %}" target="_blank">{{plasmid_propagate_result.0}}</a></strong>: {{plasmid_propagate_result.1}}</li>
+        {% endfor %}
+    </ul>
+</div>
 {% endif %}
 <table class="table table-hover">
     <thead>
@@ -54,7 +68,7 @@
                     <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdownDownload" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i>
                     </button>
                     <div class="dropdown-menu p-2 fw-light " aria-labelledby="dropdownDownload">
-                        <div class="dropdown-menu-header">Chooose format</div>
+                        <div class="dropdown-menu-header">Choose format</div>
                         <hr class="m-1"/>
                         <div class="dropdown-menu-body pt-1">
                             <a href="{% url 'plasmid_download' plasmid_id=plasmid.id %}" class="btn btn-outline-primary btn-sm me-1"
@@ -77,7 +91,7 @@
                     <button type="button" class="btn btn-outline-warning dropdown-toggle" id="dropdownAlign" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-list-nested"></i>
                     </button>
                     <div class="dropdown-menu p-2 fw-light " aria-labelledby="dropdownAlign">
-                        <div class="dropdown-menu-header">Chooose type</div>
+                        <div class="dropdown-menu-header">Choose type</div>
                         <hr class="m-1"/>
                         <div class="dropdown-menu-body pt-1">
                             <a href="{% url 'plasmid_align_fasta' plasmid_id=plasmid.id %}" class="btn btn-outline-primary btn-sm me-1" role="button" >Fasta</a>
@@ -86,10 +100,27 @@
                     </div>
                 </div>
                 {% if user_can_edit_plasmid %}
+                    <div class="dropdown dropdown-propagate" data-bs-toggle="tooltip" data-bs-placement="top" title="Propagate">
+                        <button type="button" class="btn btn-outline-info dropdown-toggle" id="dropdownPropagate" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-arrow-bar-right"></i><i class="bi bi-hammer"></i></button>
+                        <div class="dropdown-menu p-2 fw-light " aria-labelledby="dropdownPropagate">
+                            <div class="dropdown-menu-header">Propagate</div>
+                            <hr class="m-1"/>
+                            <div class="small">Re-build derivative plasmids sequences. Sure?</div>
+                            <form method="post" class="default-style">
+                                {% csrf_token %}
+                                <div class="dropdown-menu-body pt-1">
+                                    <button class="btn btn-primary btn-sm me-1" role="button" name="propagate">
+                                        Yes
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                     <div class="dropdown dropdown-enzymes" data-bs-toggle="tooltip" data-bs-placement="top" title="Build">
-                        <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdownEnzymes" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-arrow-repeat"></i><i
-                            class="bi bi-hammer"></i></button>
-                        {% include "./parts/enzyme-options.html" %}
+                        <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdownEnzymes" data-bs-toggle="dropdown" aria-expanded="false">
+                            <i class="bi bi-arrow-repeat"></i><i class="bi bi-hammer"></i></button>
+                        {% include "inventory/parts/enzyme-options.html" %}
                     </div>
                 {% endif %}
             {% else %}
@@ -103,7 +134,7 @@
                 <div class="dropdown dropdown-enzymes" data-bs-toggle="tooltip" data-bs-placement="top" title="Build">
                     <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdownEnzymes" data-bs-toggle="dropdown" aria-expanded="false"><i
                             class="bi bi-hammer"></i></button>
-                    {% include "./parts/enzyme-options.html" %}
+                    {% include "inventory/parts/enzyme-options.html" %}
                 </div>
                 {% else %}
                 You don't have perms to create plasmid sequence
@@ -135,12 +166,9 @@
         <th scope="row">Backbone</th>
         <td>
             {% if plasmid.backbone %}
-            <a href="{% url 'plasmid' plasmid_id=plasmid.backbone.id %}" class="btn btn-outline-secondary"
-               role="button">
-                <span>{{plasmid.backbone.name}}</span>
-                <span class="badge text-bg-light border fw-light p-1 fw-light m-0 align-middle">{{plasmid.backbone.idx}}</span>
-                <i class="bi bi-clipboard copy_clipboard" data-cc="{{plasmid.backbone}}"></i>
-            </a>
+                {% with pr=plasmid.backbone %}
+                    {% include "inventory/parts/plasmid-button.html" %}
+                {% endwith %}
             {% else %}
             -
             {% endif %}
@@ -150,12 +178,8 @@
         <th scope="row">Inserts</th>
         <td>
             {% if plasmid.inserts.all %}
-            {% for insert in plasmid.inserts.all %}
-            <a href="{% url 'plasmid' plasmid_id=insert.id %}" class="btn btn-outline-secondary" role="button">
-                <span>{{insert.name}}</span>
-                <span class="badge text-bg-light border fw-light p-1 fw-light m-0 align-middle">{{insert.idx}}</span>
-                <i class="bi bi-clipboard copy_clipboard" data-cc="{{insert}}"></i>
-            </a>
+            {% for pr in plasmid.inserts.all %}
+                {% include "inventory/parts/plasmid-button.html" %}
             {% endfor %}
             {% else %}
             -
@@ -166,12 +190,8 @@
     <tr>
         <th scope="row">Insert of</th>
         <td>
-            {% for insert in plasmid.insert_of %}
-            <a href="{% url 'plasmid' plasmid_id=insert.id %}" class="btn btn-outline-secondary" role="button">
-                <span>{{insert.name}}</span>
-                <span class="badge text-bg-light border fw-light p-1 fw-light m-0 align-middle">{{insert.idx}}</span>
-                <i class="bi bi-clipboard copy_clipboard" data-cc="{{insert}}"></i>
-            </a>
+            {% for pr in plasmid.insert_of %}
+                {% include "inventory/parts/plasmid-button.html" %}
             {% endfor %}
         </td>
     </tr>
@@ -180,8 +200,8 @@
     <tr>
         <th scope="row">Backbone of</th>
         <td>
-            {% for backbone in plasmid.backbone_of %}
-            <a href="{% url 'plasmid' plasmid_id=backbone.id %}" class="btn btn-outline-secondary" role="button">{{backbone}}</a>
+            {% for pr in plasmid.backbone_of %}
+                {% include "inventory/parts/plasmid-button.html" %}
             {% endfor %}
         </td>
     </tr>
@@ -193,7 +213,7 @@
                 <tbody>
                 <tr>
                     <th>Text</th>
-                    <td><i class="bi bi-clipboard copy_clipboard" data-cc="{{ plasmid.ligation_raw }}"></i></td>
+                    <td><i class="bi bi-clipboard copy_clipboard" data-cc="{{ plasmid.ligation_raw }}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Copy ligation data"></i></td>
                 </tr>
                 <tr>
                     <th>Working concentration</th>
@@ -223,7 +243,7 @@
     </tr>
     <tr>
         <th scope="row">Description</th>
-        <td>{{plasmid.description | urlize}}</td>
+        <td>{{plasmid.description | markdown | safe }}</td>
     </tr>
     <tr>
         <th scope="row">Project</th>
@@ -264,7 +284,7 @@
         <th scope="row">Validation</th>
         {% if plasmid.reference_sequence %}
         <td>This plasmid is used as reference sequence.</td>
-        {% elif plasmid.under_construction %}
+        {% elif plasmid.ligation_state != 1 %}
         <td>This plasmid is under construction.</td>
         {% else %}
         <td>
@@ -279,8 +299,23 @@
                 <tbody>
                 <tr>
                     <th>Working colony</th>
-                    <td></td>
+                    <td>-</td>
                     <td>{% if plasmid.working_colony %}#{{plasmid.working_colony}}{% else %}None{% endif %}</td>
+                </tr>
+                <tr>
+                    <th>Validation status</th>
+                    <td>-</td>
+                    <td>
+                        {% if plasmid.is_validated == None %}
+                        <span class="badge bg-secondary">Not required</span>
+                        {% else %}
+                            {% if plasmid.is_validated %}
+                                <span class="badge bg-success">Correct</span>
+                            {% else %}
+                                <span class="badge bg-primary">Pending</span>
+                            {% endif %}
+                        {% endif %}
+                    </td>
                 </tr>
                 <tr>
                     <th>Colony PCR</th>
@@ -377,4 +412,4 @@
 <div class="alert alert-warning">No plasmid found.</div>
 {% endif %}
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

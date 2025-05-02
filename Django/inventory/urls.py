@@ -66,6 +66,7 @@ urlpatterns = [
     path('glycerolstock/deleted/', login_required(views.glycerolstock_deleted, redirect_field_name='next'), name='glycerolstock_deleted'),
     path('glycerolstock/label/<uuid:glycerolstock_id>/', login_required(views.glycerolstock_label, redirect_field_name='next'), name='glycerolstock_label'),
     path('glycerolstock/boxes/', login_required(views.glycerolstock_boxes, redirect_field_name='next'), name='glycerolstock_boxes'),
+    path('glycerolstock/box/<uuid:box_id>', login_required(views.glycerolstock_box, redirect_field_name='next'), name='glycerolstock_box'),
 
     path('restrictionenzymes/', login_required(views.restrictionenzymes, redirect_field_name='next'), name='restrictionenzymes'),
     path('restrictionenzyme/<uuid:restrictionenzyme_id>/', login_required(views.restrictionenzyme, redirect_field_name='next'), name='restrictionenzyme'),

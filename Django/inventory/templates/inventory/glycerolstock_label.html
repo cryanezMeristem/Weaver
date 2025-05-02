@@ -1,14 +1,22 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/glycerolstock-base.html" %}
+
 {% load static %}
+
+{% block content %}
 <link rel="stylesheet" type="text/css" media="print" href="{% static 'css/style_inventory_print.css' %}"/>
 {% if glycerolstock %}
-{% include "./parts/glycerolstock-header.html" %}
 <div id="label">
     <div id="label-main">
         <div id="label-info">
             <p id="label-name">
-                {{glycerolstock.strain}}<br/>{% if glycerolstock.plasmid %}{{glycerolstock.plasmid}}{% endif %}
+                {{glycerolstock.strain}}<br/>{% if glycerolstock.plasmid %}{{glycerolstock.plasmid.name}}{% endif %}
             </p>
+            {% if glycerolstock.plasmid %}
+            <p id="label-id">
+                <span class="label-name">ID</span>
+                <span class="label-value">{{glycerolstock.plasmid.idx}}</span>
+            </p>
+            {% endif %}
             <p id="label-resistance">
                     {% if resistantes_strain_human %}
                         <span class="label-name">Strain Marker</span>
@@ -18,6 +26,10 @@
                         <span class="label-name">Plasmid Marker</span>
                         <span class="label-value">{{ resistantes_human }}</span><br/>
                     {% endif %}
+            </p>
+            <p id="label-colony">
+                <span class="label-name">Colony</span>
+                <span class="label-value">{% if glycerolstock.plasmid %}{{glycerolstock.plasmid.working_colony_text_short}}{% endif %}</span>
             </p>
             <p id="label-box">
                 <span class="label-name">Box</span>
@@ -31,7 +43,7 @@
                 <span class="label-name">Date</span>
                 <span class="label-value">{{glycerolstock.created_on}}</span>
             </p>
-            <p id="label-id">
+            <p id="label-qr_id">
                 {{glycerolstock.qr_id}}
             </p>
         </div>
@@ -47,4 +59,4 @@ new QRCode(document.getElementById("label-qrcode"), "{{glycerolstock.qr_id}}");
 {% else %}
 <div class="alert alert-warning">No glycerolstock found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

@@ -16,6 +16,9 @@ from django.contrib.auth import update_session_auth_hash
 from django.contrib.auth.forms import PasswordChangeForm
 from django.shortcuts import render, redirect
 
+# 400 days (max)
+max_age_cookie_max = 400 * 24 * 60 * 60
+
 def has_current_project(request):
     return True if 'current_project_id' in request.COOKIES and request.COOKIES['current_project_id'] != "" else False
 
@@ -29,7 +32,10 @@ def get_current_project_id(request):
 
 def get_current_project(request):
     if has_current_project(request):
-        return Project.objects.get(id=get_current_project_id(request))
+        try:
+            return Project.objects.get(id=get_current_project_id(request))
+        except:
+            return None
     else:
         return None
 
@@ -61,7 +67,7 @@ def project_set_current(request, pk):
     if 'next' in request.GET:
         next = request.GET.get('next')
     response = redirect(next)
-    response.set_cookie('current_project_id',  pk)
+    response.set_cookie('current_project_id',  pk, max_age=max_age_cookie_max)
     return response
 
 
@@ -71,7 +77,7 @@ def show_from_all_projects_toggle(request):
         next = request.GET.get('next')
     current_show_from_all_projects = get_show_from_all_projects(request)
     response = redirect(next)
-    response.set_cookie('show_from_all_projects', not current_show_from_all_projects)
+    response.set_cookie('show_from_all_projects', not current_show_from_all_projects, max_age=max_age_cookie_max)
     return response
 
 

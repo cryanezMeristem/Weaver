@@ -1,0 +1,32 @@
+<tr>
+    <td>
+        {{component.reactive}}
+        {% if optional %}<span class="badge bg-warning">optional</span>{% endif %}
+        {% if base %}<span class="badge bg-secondary">base</span>{% endif %}
+        {% if extra %}<span class="badge bg-primary">extra</span>{% endif %}
+        <i class="bi bi-info-circle ms-1"
+        data-bs-toggle="tooltip" data-bs-placement="top"
+        data-bs-custom-class="custom-tooltip"
+        data-bs-title="{{component.reactive.get_state_concentration_text}}"></i>
+    </td>
+    <td>
+        {% if allowed_to_edit %}
+        <a href="{% url 'reactive_edit' pk=component.reactive.id recipe_id=recipe.id %}"
+           class="btn text-secondary" role="button"><i class="bi bi-pencil-fill"></i></a>
+        <a href="{% url 'reactive_delete' pk=component.reactive.id recipe_id=recipe.id %}"
+           class="btn text-danger" role="button"><i class="bi bi-trash"></i></a>
+        {% else %}
+        Not allowed
+        {% endif %}
+    </td>
+    <td>{{component.concentration}}</td>
+    <td>{{component.concentration_units}}</td>
+    <td>
+        {% if allowed_to_edit %}
+        <a href="{% url 'component_edit' pk=component.id recipe_id=recipe.id %}"
+           class="btn text-dark" role="button"><i class="bi bi-pencil-fill"></i></a>
+        <a href="{% url 'component_delete' pk=component.id recipe_id=recipe.id %}"
+           class="btn text-danger" role="button"><i class="bi bi-trash"></i></a>
+        {% endif %}
+    </td>
+</tr>

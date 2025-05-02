@@ -1,14 +1,17 @@
 from django.shortcuts import render
 from django.utils.decorators import method_decorator
 from .models import Recipe
+from .models import Variant
 from .models import Component
 from .models import Reactive
 from .models import TableFilter
 from django.core.exceptions import ObjectDoesNotExist
 from django.http import Http404
 from .models import CONCENTRATION_UNITS
-from .forms import RecipeForm
+from .forms import RecipeVariantForm
 from .forms import RecipeCreateEditForm
+from .forms import VariantCreateForm
+from .forms import VariantEditForm
 from .forms import ComponentCreateForm
 from .forms import ComponentCreateEditForm
 from django.views.generic.edit import UpdateView
@@ -17,17 +20,246 @@ from django.views.generic.edit import DeleteView
 from django.urls import reverse
 import datetime
 from .decorators import require_member_own_recipe
+from .decorators import require_member_own_variant
 from .decorators import require_member_own_reactive
 from .decorators import require_member_own_component
 from .decorators import require_member_can_view_recipe
+from .decorators import require_member_can_view_variant
 from organization.views import get_show_from_all_projects
 from organization.views import get_projects_where_member_can_any
 from organization.decorators import require_current_project_set
 from django.db.models import Q
+from django.shortcuts import get_object_or_404
 
 
 def can_member_edit_recipe(recipe, member):
     return True if recipe.owner == member else False
+
+
+def process_recipe_variant_post(recipe_variant_form, recipe_variant_to_detail):
+    context = {
+        'result': [],
+        'warnings': [],
+        'quantity': recipe_variant_form.cleaned_data['quantity'],
+        'quantity_unit': recipe_variant_form.cleaned_data['unit'],
+        'concentration': recipe_variant_form.cleaned_data['concentration'],
+    }
+
+    any_not_autoclavable = False
+
+    # lt to prepare
+    quantity = int(recipe_variant_form.cleaned_data['quantity']) * int(context['concentration'])
+
+    if context['quantity_unit'] == 'ml':
+        quantity /= 1000
+
+    if recipe_variant_to_detail.__class__.__name__ == "Recipe":
+        all_components = list(recipe_variant_to_detail.components.all())
+    else:
+        # Variant
+        all_components = list(recipe_variant_to_detail.recipe.components.all()) + list(recipe_variant_to_detail.optional_components.all())
+
+    for component in all_components:
+        # default
+        component_unit = "-"
+        component_mass_or_volume = "Unable to calculate."
+
+        component_error = None
+
+        # state based
+        if component.reactive.state == 0:
+            # solid
+            if component.concentration_unit == 'vvp':
+                component_error = "Can not convert solid reactive to volume / volume units"
+            elif component.concentration_unit in ['mol', 'mmol']:
+                if component.reactive.mm:
+                    component_unit = 'gr'
+                    component_mass_or_volume = component.reactive.mm * component.concentration * quantity
+                    if component.concentration_unit == 'mmol':
+                        component_mass_or_volume /= 1000
+                else:
+                    component_error = "No molar mass set. It's required to calculate."
+            else:
+                # grlt or wvp
+                component_unit = 'gr'
+                component_mass_or_volume = component.concentration * quantity
+                if component.concentration_unit == 'wvp':
+                    component_mass_or_volume *= 10
+        else:
+            # liquid
+
+            # tramsform units
+            if component.concentration_unit == 'mmol':
+                component.concentration_unit = 'mol'
+                component.concentration /= 1000
+            if component.reactive.concentration_unit == 'mmol':
+                component.reactive.concentration_unit = 'mol'
+                component.reactive.concentration /= 1000
+            if component.concentration_unit == 'wpv':
+                component.concentration_unit = 'grlt'
+                component.concentration *= 10
+            if component.reactive.concentration_unit == 'wpv':
+                component.reactive.concentration_unit = 'grlt'
+                component.reactive.concentration *= 10
+
+            if component.concentration_unit == 'vvp':
+                # quantity in liters, multiply by 10. Divide by 1000 to get the liters
+                component_mass_or_volume = quantity * component.concentration / 100
+                component_unit = 'lt'
+            else:
+                if component.concentration_unit != component.reactive.concentration_unit:
+                    if component.reactive.concentration_unit == 'vvp':
+                        component_error = 'Unable con convert volume / volume to mass / volume units'
+                    else:
+                        if component.reactive.mm:
+                            # diferent units, convert
+                            if component.concentration_unit == 'mol':
+                                component.concentration_unit = 'grlt'
+                                component.concentration *= component.reactive.mm
+                            if component.reactive.concentration_unit == 'mol':
+                                component.reactive.concentration_unit = 'grlt'
+                                component.reactive.concentration *= component.reactive.mm
+                        else:
+                            component_error = 'Reactive molar mass is required'
+
+            if component.concentration_unit == component.reactive.concentration_unit:
+                # check again in case no mm is set above
+                if component.reactive.concentration > component.concentration:
+                    component_unit = 'lt'
+                    component_mass_or_volume = component.concentration * quantity / component.reactive.concentration
+                else:
+                    component_error = 'Stock concentration is equal or lower than component concentration'
+
+        # adjust units
+        if (type(component_mass_or_volume) == int or type(
+                component_mass_or_volume) == float) and component_mass_or_volume < 1:
+            component_mass_or_volume *= 1000
+            if component_unit == 'gr':
+                component_unit = 'mg'
+            if component_unit == 'lt':
+                component_unit = 'ml'
+                if component_mass_or_volume < 1:
+                    component_mass_or_volume *= 1000
+                    component_unit = 'ul'
+
+        # autoclavable reactives
+        if not component.reactive.is_autoclavable:
+            any_not_autoclavable = True
+
+        if component_error:
+            context['result'].append((component.reactive, component_error, component_unit, True))
+        else:
+            context['result'].append((component.reactive, component_mass_or_volume, component_unit, False))
+
+    context['any_not_autoclavable'] = any_not_autoclavable
+    return context
+
+
+@require_current_project_set
+@require_member_can_view_variant
+def variant(request, variant_id):
+    try:
+        variant_to_detail = Variant.objects.get(id=variant_id)
+    except ObjectDoesNotExist:
+        raise Http404
+
+    context = {}
+    if request.method == 'POST':
+        recipe_form = RecipeVariantForm(request.POST)
+        if recipe_form.is_valid():
+            context = process_recipe_variant_post(recipe_form, variant_to_detail)
+
+    context['variant'] = variant_to_detail
+    context['user_can_edit_variant'] = can_member_edit_recipe(variant_to_detail.recipe, request.user)
+    context['recipe_form'] = RecipeVariantForm()
+
+    return render(request, 'protocols/variant.html', context)
+
+
+@require_member_can_view_variant
+def variant_label(request, variant_id):
+    try:
+        variant_to_label = Variant.objects.get(id=variant_id)
+    except ObjectDoesNotExist:
+        raise Http404
+
+    context = {
+        'variant': variant_to_label,
+        'recipe': variant_to_label.recipe,
+        'date': datetime.datetime.now().date(),
+        'CONCENTRATION_UNITS_dict': dict(CONCENTRATION_UNITS),
+        'user_can_edit_variant': can_member_edit_recipe(variant_to_label.recipe, request.user)
+    }
+    return render(request, 'protocols/variant_label.html', context)
+
+
+class VariantCreate(CreateView):
+    model = Variant
+    form_class = VariantCreateForm
+    template_name_suffix = '_create_form'
+
+    @method_decorator(require_member_own_recipe)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def form_valid(self, form):
+        form.instance.recipe = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
+        return super().form_valid(form)
+
+    def get_form_kwargs(self):
+        kwargs = super(VariantCreate, self).get_form_kwargs()
+        kwargs.update({'recipe_id': self.kwargs['recipe_id']})
+        return kwargs
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["recipe"] = get_object_or_404(Recipe, id=self.kwargs.get('recipe_id'))
+        return context
+
+    def get_success_url(self, **kwargs):
+        return reverse('recipe', args=(self.object.recipe.id,)) + '?form_result_recipe_edit_success=true'
+
+
+class VariantEdit(UpdateView):
+    model = Variant
+    form_class = VariantEditForm
+    template_name_suffix = '_update_form'
+
+    @method_decorator(require_member_own_variant)
+    def dispatch(self, *args, **kwargs):
+        self.extra_context = {
+            'show_create_component_button': True
+        }
+        return super().dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_can_edit_variant'] = can_member_edit_recipe(self.object.recipe, self.request.user)
+        context['component_form'] = ComponentCreateForm()
+        return context
+
+    def get_form_kwargs(self):
+        kwargs = super(VariantEdit, self).get_form_kwargs()
+        return kwargs
+
+    def get_success_url(self, **kwargs):
+        return reverse('variant', args=(self.object.id,)) + '?form_result_recipe_edit_success=true'
+
+
+class VariantDelete(DeleteView):
+    model = Variant
+
+    @method_decorator(require_member_own_variant)
+    def dispatch(self, *args, **kwargs):
+        return super().dispatch(*args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['user_can_edit_variant'] = can_member_edit_recipe(self.object.recipe, self.request.user)
+        return context
+
+    def get_success_url(self, **kwargs):
+        return reverse('recipes') + '?form_result_object_deleted=true'
 
 
 @require_current_project_set
@@ -37,118 +269,16 @@ def recipe(request, recipe_id):
         recipe_to_detail = Recipe.objects.get(id=recipe_id)
     except ObjectDoesNotExist:
         raise Http404
-    context = {
-        'recipe': recipe_to_detail,
-        'user_can_edit_recipe': can_member_edit_recipe(recipe_to_detail, request.user)
-    }
 
+    context = {}
     if request.method == 'POST':
-        recipe_form = RecipeForm(request.POST)
+        recipe_form = RecipeVariantForm(request.POST)
         if recipe_form.is_valid():
-            context['result'] = []
-            context['warnings'] = []
+            context = process_recipe_variant_post(recipe_form, recipe_to_detail)
 
-            context['quantity'] = recipe_form.cleaned_data['quantity']
-            context['quantity_unit'] = recipe_form.cleaned_data['unit']
-            context['concentration'] = recipe_form.cleaned_data['concentration']
-
-            try:
-                quantity = recipe_form.cleaned_data['quantity'] * context['concentration']
-            except:
-                context['error'] = "Quantity or concentration not valid"
-            # siempre en ml
-            if recipe_form.cleaned_data['unit'] == 'ml':
-                quantity = quantity / 1000
-            for component in recipe_to_detail.components.all():
-                # checks
-                # if not component.concentration_unit or not component.concentration:
-                #     context['error'] = "Component " + component.name + ": Quantity or concentration not set"
-                #     break
-                # if not component.reactive.concentration_unit or not component.reactive.concentration:
-                #     context['error'] = "Reactive " + component.reactive.name + ": Quantity or concentration not set"
-                #     break
-                # siempre mMol
-                if component.concentration_unit == 'mol':
-                    component.concentration_unit = 'mmol'
-                    component.concentration = component.concentration * 1000
-                if component.reactive.concentration_unit == 'mol':
-                    component.reactive.concentration_unit = 'mmol'
-                    component.reactive.concentration = component.reactive.concentration * 1000
-                # calcular componentes
-                if component.concentration_unit == 'grlt':
-                    if component.reactive.state != 0:
-                        # if reactive isn't solid state
-                        context['warnings'].append(
-                            "Reactive " + component.reactive.name +
-                            " is not in solid state. Calculation of components in \"" +
-                            CONCENTRATION_UNITS[2][1] + "\" unit assumes solid state reactive.")
-                    component_mass_or_volume = component.concentration * quantity
-                    component_unit = 'gr'
-                    if component_mass_or_volume < 1:
-                        component_mass_or_volume = component_mass_or_volume * 1000
-                        component_unit = 'mg'
-                elif component.concentration_unit == 'vvp':
-                    if component.reactive.state != 1:
-                        # if reactive isn't liquid state
-                        context['warnings'].append(
-                            "Reactive " + component.reactive.name +
-                            " is not in solid state. Calculation of components in \"" +
-                            CONCENTRATION_UNITS[3][1] + "\" unit assumes liquid state reactive.")
-                    component_mass_or_volume = component.concentration * quantity / component.reactive.concentration
-                    component_unit = 'lt'
-                    if component_mass_or_volume < 1:
-                        component_mass_or_volume = component_mass_or_volume * 1000
-                        component_unit = 'ml'
-                elif component.concentration_unit == 'wvp':
-                    if component.reactive.state != 0:
-                        # if reactive isn't solid state
-                        context['warnings'].append(
-                            "Reactive " + component.reactive.name +
-                            " is not in solid state. Calculation of components in \"" +
-                            CONCENTRATION_UNITS[4][1] + "\" unit assumes solid state reactive.")
-                    component_mass_or_volume = component.concentration * 10 * quantity
-                    component_unit = 'gr'
-                    if component_mass_or_volume < 1:
-                        component_mass_or_volume = component_mass_or_volume * 1000
-                        component_unit = 'mg'
-                elif component.concentration_unit == 'mmol':
-                    # solid reactive
-                    if component.reactive.state == 0:
-                        # mass (gr) = concentration (mM) * volume (Lt) * molecular mass (g/mol) / 1000
-                        component_mass_or_volume = component.concentration * quantity * component.reactive.mm / 1000
-                        component_unit = 'gr'
-                        if component_mass_or_volume < 1:
-                            component_mass_or_volume = component_mass_or_volume * 1000
-                            component_unit = 'mg'
-                    else:
-                        # liquid
-                        if component.reactive.concentration_unit != 'mmol':
-                            context[
-                                'error'] = 'I can only calculate liquid dilutions from molarity to molarity (' + component.reactive.name + ')'
-                            break
-                        if component.reactive.concentration < component.concentration:
-                            context[
-                                'error'] = 'Your stock concentration (' + str(
-                                component.reactive.concentration) + ') of ' + component.reactive.name + ' is lower than desired concentration (' + str(
-                                component.concentration) + ')'
-                            break
-                        component_mass_or_volume = component.concentration * quantity / component.reactive.concentration
-                        component_unit = 'lt'
-                        if component_mass_or_volume < 1:
-                            component_mass_or_volume = component_mass_or_volume * 1000
-                            component_unit = 'ml'
-                        if component_mass_or_volume < 1:
-                            component_mass_or_volume = component_mass_or_volume * 1000
-                            component_unit = 'ul'
-                else:
-                    context[
-                        'error'] = 'Unit (' + component.concentration_unit + ') of component (' + component.reactive.name + ') is not valid (yet)'
-                    break
-
-                context['result'].append(
-                    (component.reactive.name, component_mass_or_volume, component_unit))
-
-    context['recipe_form'] = RecipeForm()
+    context['recipe'] = recipe_to_detail
+    context['user_can_edit_recipe'] = can_member_edit_recipe(recipe_to_detail, request.user)
+    context['recipe_form'] = RecipeVariantForm()
 
     return render(request, 'protocols/recipe.html', context)
 
@@ -167,6 +297,9 @@ def recipes(request):
         recipes = Recipe.objects.filter(Q(owner=request.user) | Q(shared_to_project__in=get_projects_where_member_can_any(request.user))).distinct()
     else:
         recipes = Recipe.objects.filter(owner=request.user)
+
+    for recipe in recipes:
+        recipe.user_can_edit_recipe = can_member_edit_recipe(recipe, request.user)
     
     context = {
         'recipes': recipes,
@@ -183,6 +316,9 @@ class RecipeEdit(UpdateView):
 
     @method_decorator(require_member_own_recipe)
     def dispatch(self, *args, **kwargs):
+        self.extra_context = {
+            'show_create_component_button': True
+        }
         return super().dispatch(*args, **kwargs)
 
     def get_context_data(self, **kwargs):
@@ -213,7 +349,6 @@ class RecipeDelete(DeleteView):
         return context
 
     def get_success_url(self, **kwargs):
-        # return reverse('glycerolstock_deleted')
         return reverse('recipes') + '?form_result_object_deleted=true'
 
 
@@ -245,7 +380,8 @@ def recipe_label(request, recipe_id):
     context = {
         'recipe': recipe_to_label,
         'date': datetime.datetime.now().date(),
-        'CONCENTRATION_UNITS': CONCENTRATION_UNITS,
+        'CONCENTRATION_UNITS_dict': dict(CONCENTRATION_UNITS),
+        'user_can_edit_recipe': can_member_edit_recipe(recipe_to_label, request.user)
     }
     return render(request, 'protocols/recipe_label.html', context)
 

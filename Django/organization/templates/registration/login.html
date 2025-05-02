@@ -1,13 +1,12 @@
-{% include "inventory/parts/header.html" %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 m-0 align-middle">Login</span>
-    </div>
-</div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_name %}Login{% endblock %}
+
+{% block content %}
 <form method="post">
     {% csrf_token %}
     {{ form.as_p }}
     <button type="submit">Login</button>
     <input type="hidden" name="next" value="{% if request.GET.next %}{{ request.GET.next }}{% else %}{% url 'profile' %}{% endif %}" />
 </form>
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

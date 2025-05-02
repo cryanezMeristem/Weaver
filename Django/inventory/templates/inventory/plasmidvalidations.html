@@ -1,13 +1,35 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
 {% load general_extras %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 ps-0 m-0 align-middle">Plasmid Validations</span>
+
+{% block header_object_name %}Plasmid Validations{% endblock %}
+{% block header_object_links %}
+{% include "inventory/parts/show_from_all_projects.html" %}
+{% endblock %}
+
+{% block content %}
+{% if plasmid_massive_action_results %}
+<div class="accordion mb-2 accordion-bg-success" id="plasmidActionResult">
+<div class="accordion-item">
+    <h2 class="accordion-header">
+      <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#plasmidActionResult-collapse" aria-expanded="true" aria-controls="plasmidActionResult-collapse">
+        Plasmid actions result
+      </button>
+    </h2>
+    <div id="plasmidActionResult-collapse" class="accordion-collapse show" data-bs-parent="#plasmidActionResult">
+      <div class="accordion-body">
+        <ul>
+            {% for plasmid_massive_action_result in plasmid_massive_action_results %}
+                <li><strong>{{plasmid_massive_action_result.0 }}</strong> <span>{{plasmid_massive_action_result.1}}</span></li>
+            {% endfor %}
+        </ul>
+        </div>
     </div>
-    {% include "./parts/show_from_all_projects.html" %}
 </div>
+</div>
+{% endif %}
 <div class="accordion" id="plasmidValidations">
   {% for k, list in lists.items %}
+  {% if list.data %}
   <div class="accordion-item">
     <h2 class="accordion-header">
       <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#{{k}}" aria-expanded="true" aria-controls="{{k}}">
@@ -16,15 +38,23 @@
     </h2>
     <div id="{{k}}" class="accordion-collapse collapse" data-bs-parent="#plasmidValidations">
       <div class="accordion-body">
-        {% if list.data %}
-        <table class="table table-hover sortable">
+        <form class="massiveActionForm default-style" method="POST">
+            <table class="table table-hover sortable">
             <thead>
             <tr>
+                {% if k == 'waiting' or k == 'to_ligate' or k == 'to_colonypcr' or k == 'to_digest' or k == 'to_sequence' %}
+                <th>Select</th>
+                {% endif %}
                 <th>Plasmid</th>
+                <th>Project</th>
+                {% if k == 'to_ligate' %}
+                <th>Ligation Priority</th>
+                {% endif %}
+                <th>Actions</th>
                 {% if k == 'to_sequence' or k == 'to_stock' %}
                 <th>Working colony</th>
                 {% endif %}
-                {% if k == 'under_construction' %}
+                {% if k == 'to_ligate' %}
                 <th>Ligation raw</th>
                 {% endif %}
                 {% if k == 'to_colonypcr' or k == 'to_digest' or k == 'to_sequence' or k == 'to_stock' %}
@@ -36,36 +66,71 @@
                 {% if k == 'to_digest' or k == 'to_sequence' or k == 'to_stock' %}
                 <th>Sequencing</th>
                 {% endif %}
+                {% if k != 'references' %}
+                <th>Dependencies</th>
+                {% endif %}
             </tr>
             </thead>
             <tbody>
             {% for plasmid in list.data %}
             <tr>
+                {% if k == 'waiting' or  k == 'to_ligate' or k == 'to_colonypcr' or k == 'to_digest' or k == 'to_sequence' %}
+                <th>
+                    <input name="pidx-{{plasmid.idx}}" type="checkbox" data-plasmid_idx={{plasmid.idx}} data-action_id={{k}} type="checkbox" class="btn-check" id="{{k}}-pidx-{{plasmid.idx}}" autocomplete="off">
+                    <label class="btn btn-outline-primary" for="{{k}}-pidx-{{plasmid.idx}}">
+                        <i class="bi bi-check"></i>
+                    </label>
+                </th>
+                {% endif %}
                 <td>
-                    <a href="{% url 'plasmid' plasmid_id=plasmid.id %}" class="btn btn-success table-search-search_on"
-                       role="button">{{plasmid}} <i class="bi bi-clipboard copy_clipboard" data-cc="{{plasmid}}"></i></a>
-                    <a href="{% url 'plasmid_validation_edit' plasmid_id=plasmid.id %}" class="btn btn-outline-info"
+                    {% with pr=plasmid extra_class="btn-success table-search-search_on" hide_validation_status=True %}
+                        {% include "inventory/parts/plasmid-button.html" %}
+                    {% endwith %}
+                </td>
+                <td>
+                    {{plasmid.project}}
+                </td>
+                {% if k == 'to_ligate' %}
+                <td>
+                    {% if plasmid.ligation_state == 2%}
+                    <span class="badge lh-base px-3 my-1 bg-secondary">LOW</span>
+                    {% endif %}
+                    {% if plasmid.ligation_state == 3%}
+                    <span class="badge lh-base px-3 my-1 bg-info">MID</span>
+                    {% endif %}
+                    {% if plasmid.ligation_state == 4%}
+                    <span class="badge lh-base px-3 my-1 bg-danger">HIGH</span>
+                    {% endif %}
+                </td>
+                {% endif %}
+               <td>
+                    <button class="btn text-secondary text-secondary me-1 copy_clipboard-child" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Copy name"><i class="bi bi-clipboard copy_clipboard" data-cc="{{plasmid}}"></i></button>
+                    {% if not plasmid.reference_sequence %}
+                   <a href="{% url 'plasmid_validation_edit' plasmid_id=plasmid.id %}" class="btn text-info"
                        role="button">
                         <i class="bi bi-check2-square"></i>
                     </a>
+                   {% endif %}
                     {% if k == 'to_colonypcr' %}
-                    <a href="{% url 'plasmid_pcr' plasmid_id=plasmid.id %}" class="btn btn-outline-success"
+                    <a href="{% url 'plasmid_pcr' plasmid_id=plasmid.id %}" class="btn text-success"
                                role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="PCR"><i class="bi bi-arrow-return-right"></i></a>
                     {% endif %}
                     {% if k == 'to_digest' %}
-                    <a href="{% url 'plasmid_digest' plasmid_id=plasmid.id %}" class="btn btn-outline-secondary"
+                    <a href="{% url 'plasmid_digest' plasmid_id=plasmid.id %}" class="btn text-secondary"
                        role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Digest"><i class="bi bi-scissors"></i></a>
                     {% endif %}
                     {% if k == 'to_stock' %}
-                    <a href="{% url 'glycerolstock_create_plasmid_defined' pid=plasmid.id %}" class="btn btn-outline-secondary"
+                    <a href="{% url 'glycerolstock_create_plasmid_defined' pid=plasmid.id %}" class="btn texte-secondary"
                        role="button" target="_blank">Create GS</a>
                     {% endif %}
                 </td>
                 {% if k == 'to_sequence' or k == 'to_stock' %}
-                <td>{% if plasmid.working_colony %}#{{plasmid.working_colony}}{% else %}Not set{% endif %}</td>
+                <td>{% if plasmid.working_colony %}{{plasmid.working_colony}}{% else %}Not set{% endif %}</td>
                 {% endif %}
-                {% if k == 'under_construction' %}
-                <td><i class="bi bi-clipboard copy_clipboard" data-cc="{{ ligation_raw }}"></i></td>
+                {% if k == 'to_ligate' %}
+                <td>
+                    <button class="btn text-secondary me-1 copy_clipboard-child" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="Copy name"><i class="bi bi-clipboard copy_clipboard" data-cc="{{ ligation_raw }}"></i></button>
+                </td>
                 {% endif %}
                 {% if k == 'to_colonypcr' or k == 'to_digest' or k == 'to_sequence' or k == 'to_stock' %}
                 <td><strong>{{CHECK_STATES|get_element_by_key:plasmid.colonypcr_state}}</strong>{% if plasmid.colonypcr_date %} ({{plasmid.colonypcr_date|date:"d M, Y"}}){% endif %}{% if plasmid.colonypcr_observations %}: {{plasmid.colonypcr_observations}}{% endif %}</td>
@@ -76,16 +141,76 @@
                 {% if k == 'to_digest' or k == 'to_sequence' or k == 'to_stock' %}
                 <td><strong>{{CHECK_STATES|get_element_by_key:plasmid.sequencing_state}}</strong>{% if plasmid.sequencing_date %} ({{plasmid.sequencing_date|date:"d M, Y"}}){% endif %}{% if plasmid.sequencing_observations %}: {{plasmid.sequencing_observations}}{% endif %}</td>
                 {% endif %}
+                {% if k != 'references' %}
+                <td>
+                    <button class="btn btn-outline-secondary me-1 prevent_default" data-bs-toggle="modal" data-bs-target="#modal-dependencies-{{plasmid.idx}}" aria-label="Show dependencies">Show</button>
+                    <div class="modal" id="modal-dependencies-{{plasmid.idx}}" tabindex="-1" aria-labelledby="modal_title-0" style="display: none;" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h1 class="modal-title fs-5" id="modal_title-0">Dependencies: {{plasmid}}</h1>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    {% with pd=plasmid.backbone pd_title="Backbone" %}
+                                    {% include "inventory/parts/plasmid-dependency-table.html" %}
+                                    {% endwith %}
+                                    {% with pd=plasmid.inserts.all pd_title="Inserts" %}
+                                    {% include "inventory/parts/plasmid-dependency-table.html" %}
+                                    {% endwith %}
+                                    {% with pd=plasmid.get_backbone_of pd_title="Backbone of" %}
+                                    {% include "inventory/parts/plasmid-dependency-table.html" %}
+                                    {% endwith %}
+                                    {% with pd=plasmid.get_insert_of pd_title="Insert of" %}
+                                    {% include "inventory/parts/plasmid-dependency-table.html" %}
+                                    {% endwith %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% if not plasmid.dependencies_validated %}
+                    <i class="bi bi-exclamation-diamond"></i>
+                    {% endif %}
+                </td>
+                {% endif %}
             </tr>
             {% endfor %}
             </tbody>
         </table>
-        {% else %}
-        <div class="alert alert-warning">No plasmids {{list.empty_text}}.</div>
-        {% endif %}
+            {% if k == 'waiting' or k == 'to_ligate' or k == 'to_colonypcr' or k == 'to_digest' or k == 'to_sequence' %}
+            <div class="">
+                <label for="massive_action_form_action" class="form-label">Change {% if k == 'to_colonypcr' %}Colony PCR{% endif %}{% if k == 'to_digest' %}Digestion{% endif %}{% if k == 'to_sequence' %}Sequencing{% endif %}{% if k == 'waiting' or k == 'to_ligate' %}Ligation{% endif %} state for selected plasmids</label>
+                <select id="massive_action_form_action" name="massive_action_form_action">
+                    {% if k == 'to_colonypcr' %}
+                    <option value="colony_pcr_correct">Colony PCR - Correct</option>
+                    {% endif %}
+                    {% if k == 'to_digest' %}
+                    <option value="digestion_correct">Digestion - Correct</option>
+                    {% endif %}
+                    {% if k == 'to_sequence' %}
+                    <option value="sequencing_correct">Sequencing - Correct</option>
+                    {% endif %}
+                    {% if k == 'to_ligate' %}
+                    <option value="ligation_state-1">{{LIGATION_STATES|get_element_by_key:1}}</option>
+                    {% endif %}
+                    {% if k == 'waiting' or k == 'to_ligate' %}
+                    <option value="ligation_state-2">{{LIGATION_STATES|get_element_by_key:2}}</option>
+                    <option value="ligation_state-3">{{LIGATION_STATES|get_element_by_key:3}}</option>
+                    <option value="ligation_state-4">{{LIGATION_STATES|get_element_by_key:4}}</option>
+                    {% endif %}
+                    {% if k == 'to_ligate' %}
+                    <option value="ligation_state-0">{{LIGATION_STATES|get_element_by_key:0}}</option>
+                    {% endif %}
+                </select>
+                <button type="submit" name="massive_action_form_submit" class="btn btn-primary">Set</button>
+            </div>
+            {% endif %}
+            {% csrf_token %}
+        </form>
       </div>
     </div>
   </div>
+  {% endif %}
   {% endfor %}
 </div>
-{% include "./parts/footer.html" %}
+{% endblock %}

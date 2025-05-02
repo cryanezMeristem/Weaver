@@ -1,0 +1,55 @@
+{% extends "inventory/parts/base.html" %}
+
+{% if plasmid %}
+{% block header_object_type %}Plasmid{% endblock %}
+{% block header_object_name %}{{plasmid.name}}{% endblock %}
+{% block header_object_id %}{{plasmid.idx}}{% endblock %}
+{% block header_object_adds %}
+    {% with get_check_state=plasmid.get_check_state %}
+    <span>
+        <i class="bi {% if get_check_state == 'r' %}bi-bookmarks{% elif get_check_state == 'v' %}bi-check-circle{% else %}bi bi-hammer{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="{% if get_check_state == 'r' %}Reference{% elif get_check_state == 'v' %}Validated{% else %}Under construction{% endif %}" data-bs-original-title="{% if get_check_state == 'r' %}Reference{% elif get_check_state == 'v' %}Validated{% else %}Under construction{% endif %}"></i>
+    </span>
+    {% endwith %}
+    <i class="bi bi-clipboard copy_clipboard" data-cc="{{plasmid}}" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Copy name & ID"></i>
+{% endblock %}
+{% block header_object_links %}
+
+        {% if plasmid.sequence %}
+        <a href="{% url 'plasmid_view_edit' plasmid_id=plasmid.id %}" class="btn btn-outline-info"
+           role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="View / Edit"><i class="bi bi-eye"></i> / <i class="bi bi-pencil"></i></a>
+        <div class="dropdown dropdown-download" data-bs-toggle="tooltip" data-bs-placement="top" title="Download">
+            <button type="button" class="btn btn-outline-primary dropdown-toggle" id="dropdownDownload" data-bs-toggle="dropdown" aria-expanded="false"><i class="bi bi-download"></i>
+            </button>
+            <div class="dropdown-menu p-2 fw-light " aria-labelledby="dropdownDownload">
+                <div class="dropdown-menu-header">Choose format</div>
+                <hr class="m-1"/>
+                <div class="dropdown-menu-body pt-1">
+                    <a href="{% url 'plasmid_download' plasmid_id=plasmid.id %}" class="btn btn-outline-primary btn-sm me-1"
+                       role="button"
+                       download="{{plasmid.name}}">ORIG</a>
+                    <a href="{% url 'plasmid_download' plasmid_id=plasmid.id %}?format=gb" class="btn btn-outline-primary btn-sm me-1"
+                       role="button"
+                       download="{{plasmid.name}}">GB</a>
+                    <a href="{% url 'plasmid_download' plasmid_id=plasmid.id %}?format=fasta"
+                       class="btn btn-outline-primary btn-sm" role="button"
+                       download="{{plasmid.name}}">FASTA</a>
+                </div>
+            </div>
+        </div>
+        <a href="{% url 'plasmid_digest' plasmid_id=plasmid.id %}" class="btn btn-outline-secondary"
+           role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Digest"><i class="bi bi-scissors"></i></a>
+        {% endif %}
+        {% if user_can_edit_plasmid %}
+        <a href="{% url 'plasmid_edit' pk=plasmid.id %}" class="btn btn-outline-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i
+                class="bi bi-pencil-fill"></i></a>
+        <a href="{% url 'plasmid_delete' pk=plasmid.id %}" class="btn btn-outline-danger" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Trash"><i
+                class="bi bi-trash"></i></a>
+        {% if not plasmid.reference_sequence %}<a href="{% url 'plasmid_validation_edit' plasmid_id=plasmid.id %}" class="btn btn-outline-primary" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Validation">
+            <i class="bi bi-check2-square"></i></a>{% endif %}
+        {% endif %}
+        <a href="{% url 'plasmid_duplicate' plasmid_id=plasmid.id %}" class="expand-hover btn btn-outline-success" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Duplicate"><i class="bi bi-node-plus-fill"></i></a>
+        <a href="{% url 'plasmid_label' plasmid_id=plasmid.id %}" class="expand-hover btn btn-outline-info" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Label"><i class="bi bi-tag-fill"></i></a>
+        <a href="{% url 'plasmid' plasmid_id=plasmid.id %}" class="btn btn-outline-warning" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Return to plasmid"><i
+                class="bi bi-arrow-return-left"></i></a>
+{% endblock %}
+{% endif %}

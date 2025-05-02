@@ -1,9 +1,9 @@
-{% include "../../parts/header.html" %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 ps-0 m-0 align-middle">Organization / Stats</span>
-    </div>
-</div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_type %}Organization{% endblock %}
+{% block header_object_name %}Stats{% endblock %}
+
+{% block content %}
 <form method="post" class="default-style mb-4">
     {% csrf_token %}
     <button type="submit" name="refresh_stats"><i class="bi bi-arrow-counterclockwise"></i> stats</button> Last update: {{ last_update }}
@@ -43,4 +43,4 @@
     </div>
 </div>
 {% endif %}
-{% include "../../parts/footer.html" %}
+{% endblock %}

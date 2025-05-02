@@ -1,10 +1,12 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/plasmid-base.html" %}
+
 {% load primer_extras %}
 {% load humanize %}
 {% load static %}
+
+{% block content %}
 <link rel="stylesheet" type="text/css" media="print" href="{% static 'css/style_inventory_print.css' %}"/>
 {% if plasmid %}
-    {% include "./parts/plasmid-header.html" %}
     {% if show_new_PCR %}
     <a href="{% url 'plasmid_pcr' plasmid_id=plasmid.id %}" class="btn btn-outline-primary" role="button"><i class="bi bi-plus-circle-dotted"></i> New PCR</a>
     {% endif %}
@@ -134,4 +136,4 @@
 {% else %}
 <div class="alert alert-warning">No plasmid found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

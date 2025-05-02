@@ -1,8 +1,9 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/plasmid-base.html" %}
 {% load static %}
 {% load humanize %}
+
+{% block content %}
 {% if plasmid %}
-{% include "./parts/plasmid-header.html" %}
 <div id="label" class="plasmid">
     <div id="label-main">
         <div id="label-info">
@@ -10,7 +11,7 @@
                 {{plasmid.name}}
             </p>
             <p id="label-id">
-                <span class="label-name">IDX</span>
+                <span class="label-name">ID</span>
                 <span class="label-value"># {{plasmid.idx}}</span>
             </p>
             <p id="label-created">
@@ -76,4 +77,4 @@
 {% else %}
 <div class="alert alert-warning">No plasmid found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

@@ -1,0 +1,95 @@
+{% extends "protocols/parts/variant-base.html" %}
+{% load humanize %}
+
+{% block content %}
+{% if variant %}
+{% include "inventory/form_results.html" %}
+<div id="recipe-prepare" class="result">
+    <h2 id="recipe-prepare-title">
+        Prepare variant
+    </h2>
+    {% include "./parts/recipe-variant-prepare.html" %}
+</div>
+{% with variant.recipe as recipe %}
+<table class="table table-hover">
+    <thead>
+    <tr>
+        <th scope="col">Property</th>
+        <th scope="col">Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <th scope="row">Name</th>
+        <td>{{variant.name}}</td>
+    </tr>
+    <tr>
+        <th scope="row">Code</th>
+        <td>{{variant.code_txt}}</td>
+    </tr>
+    <tr>
+        <th scope="row">Parent</th>
+        <td>
+            <a href="{% url 'recipe' recipe_id=recipe.id %}" class="btn btn-outline-secondary" role="button">
+                {{recipe}}
+            </a>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row">Components</th>
+        <td>
+            <table class="table mb-0 sortable">
+                <thead>
+                <th scope="col">Reactive</th>
+                <th scope="col">Reactive / Edit</th>
+                <th scope="col">Concentration</th>
+                <th scope="col">Unit</th>
+                {% if user_can_edit_variant %}
+                <th scope="col" data-defaultsort='disabled'>Edit</th>
+                {% endif %}
+                </thead>
+                <tbody>
+                {% with user_can_edit_variant as allowed_to_edit %}
+                    {% with True as base %}
+                    {% for component in recipe.components.all %}
+                    {% include "./parts/print_component_row.html" %}
+                    {% endfor %}
+                    {% endwith %}
+                    
+                    {% with True as extra %}
+                    {% for component in variant.optional_components.all %}
+                    {% include "./parts/print_component_row.html" %}
+                    {% endfor %}
+                    {% endwith %}
+                {% endwith %}
+                </tbody>
+            </table>
+        </td>
+    </tr>
+    <tr>
+        <th scope="row">pH</th>
+        <td>{{variant.ph}}</td>
+    </tr>
+    <tr>
+        <th scope="row">Description</th>
+        <td>{{variant.description}}</td>
+    </tr>
+    <tr>
+        <th scope="row">Categories</th>
+        <td>{{recipe.category.all|join:" / "}}</td>
+    </tr>
+    <tr>
+        <th scope="row">Projects</th>
+        <td>{{recipe.shared_to_project.all|join:" / "}}</td>
+    </tr>
+    <tr>
+        <th scope="row">Owner</th>
+        <td>{{recipe.owner.last_name}}, {{recipe.owner.first_name}}</td>
+    </tr>
+    </tbody>
+</table>
+{% endwith %}
+{% else %}
+<div class="alert alert-danger">No variant found.</div>
+{% endif %}
+{% endblock %}

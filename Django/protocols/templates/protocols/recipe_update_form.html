@@ -1,11 +1,12 @@
-{% include "inventory/parts/header.html" %}
+{% extends "protocols/parts/recipe-base.html" %}
+
+{% block content %}
 {% if recipe %}
-{% include "./parts/recipe-header.html" with show_create_component_button=True %}
 {% include "inventory/form_results.html" %}
 <div id="form-inventory">
-    {% include "inventory/inventory_update_form.html" %}
+    {% include "inventory/parts/inventory_update_form.html" %}
 </div>
 {% else %}
 <div class="alert alert-warning">No recipe found.</div>
 {% endif %}
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

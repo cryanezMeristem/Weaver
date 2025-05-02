@@ -1,0 +1,8 @@
+{% extends "inventory/parts/base.html" %}
+
+{% if membership %}
+{% block header_object_type %}Membership{% endblock %}
+{% block header_object_name %}{{membership}}{% endblock %}
+{% endif %}
+
+{% include "inventory/form_results.html" %}

@@ -1,0 +1,20 @@
+{% extends 'inventory/parts/base.html' %}
+
+{% if variant %}
+{% block header_object_type %}Variant{% endblock %}
+{% block header_object_name %}{{variant.name}}{% endblock %}
+{% block header_object_id %}{{variant.code_txt}}{% endblock %}
+{% block header_object_links %}
+        {% if show_create_component_button %}
+        {% include './create_component_reactive_button.html' %}
+        {% endif %}
+        {% if user_can_edit_variant %}
+        <a href="{% url 'variant_edit' pk=variant.id %}" class="btn btn-outline-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="bi bi-pencil"></i></a>
+        <a href="{% url 'variant_delete' pk=variant.id %}" class="btn btn-outline-danger" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Trash"><i
+                class="bi bi-trash"></i></a>
+        {% endif %}
+        <a href="{% url 'variant_label' variant_id=variant.id %}" class="btn btn-outline-info"
+           role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Label"><i class="bi bi-tag-fill"></i></a>
+        <a href="{% url 'variant' variant_id=variant.id %}" class="btn btn-outline-warning" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Return"><i class="bi bi-arrow-return-left"></i></a>
+{% endblock %}
+{% endif %}

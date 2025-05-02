@@ -1,8 +1,9 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/glycerolstock-base.html" %}
+
+{% block content %}
 {% if glycerolstock %}
-{% include "./parts/glycerolstock-header.html" %}
 <div id="form-inventory">
-    {% include "./inventory_update_form.html" %}
+    {% include "inventory/parts/inventory_update_form.html" %}
 </div>
 <div class="extra_header">
     <h1>GS Boxes</h1>
@@ -20,4 +21,4 @@
 {% else %}
 <div class="alert alert-warning">No Glycerol stock found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

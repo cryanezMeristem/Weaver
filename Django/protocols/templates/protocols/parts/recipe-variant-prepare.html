@@ -1,0 +1,53 @@
+{% if result %}
+    {% if error %}
+    <div id="recipe-result-error">
+        <div class="alert alert-danger" role="alert">Error: {{error}}</div>
+    </div>
+    {% else %}
+    {% if warnings %}
+    <div id="recipe-result-warnings">
+        {% for warning in warnings %}
+        <div class="alert alert-warning" role="alert">Warning: {{warning}}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    <div id="recipe-result-making" class="alert alert-info">
+        Recipe to prepare <strong>{{quantity}} {{quantity_unit}}</strong> of <strong>{{recipe}}{{variant}}</strong>{% if concentration != 1 %}
+        at {{concentration}}X
+        {% endif %}
+    </div>
+    <div id="recipe-result" class="p-3 alert alert-light">
+        {% with autoclavable_show=True %}
+        {% include "./recipe-table.html" %}
+        {% endwith %}
+        {% if any_not_autoclavable %}
+        <div class="alert alert-secondary">After autoclave, add:</div>
+        {% with autoclavable_show=False %}
+        {% include "./recipe-table.html" %}
+        {% endwith %}
+        {% endif %}
+    </div>
+    <div id="recipe-prepare_new" class="alert alert-warning">
+        Choose a new volume
+    </div>
+    {% endif %}
+{% endif %}
+<form id="prepare" action="" method="post">
+    {% csrf_token %}
+    {{ recipe_form.non_field_errors }}
+    {% for field, errors in recipe_form.errors.items %}
+    {% for error in errors %}
+    {{error}}
+    {% endfor %}
+    {% endfor %}
+    {{ recipe_form.quantity }}
+    {{ recipe_form.unit }}
+    <button class="btn btn-outline-secondary active" data-bs-toggle="button" autocomplete="off" aria-pressed="true"
+            type="button" data-value="ml">ml
+    </button>
+    <button class="btn btn-outline-secondary" autocomplete="off" type="button" data-value="lt">lt</button>
+    <span> at </span>
+    {{ recipe_form.concentration }}
+    <span class="times"> X </span>
+    <input type="submit" value="Calculate" class="btn btn-dark">
+</form>

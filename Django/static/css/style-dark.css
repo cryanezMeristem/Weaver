@@ -1,0 +1,38 @@
+html[data-bs-theme="dark"]{
+    div#header,
+    .text-dark,
+    h1,
+    h1.bp3-heading,
+    h2,
+    h2.bp3-heading,
+    h3,
+    h3.bp3-heading,
+    h4,
+    h4.bp3-heading,
+    h5,
+    h5.bp3-heading,
+    h6,
+    h6.bp3-heading {
+        color: #fff !important;
+    }
+    .plasmid-opts i {
+        color: #484848 !important;
+    }
+    #ove-viewer{
+        background: #eee;
+    }
+    table.glycerolstock_box-detail {
+        color: #ccc;
+    }
+    form:not(.default-style){
+        color: #eee;
+    }
+    form,
+    .bg-light,
+    .glycerolstock_box-inner{
+        background: #343a40 !important;
+    }
+    div#header-container {
+        background: #444;
+    }
+}

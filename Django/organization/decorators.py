@@ -24,6 +24,15 @@ def require_current_project_set(function):
     return wrap
 
 
+def require_member_can_any_current_project(function):
+    def wrap(request, *args, **kwargs):
+        if on_project_member_can_any(get_current_project(request), request.user):
+            return function(request, *args, **kwargs)
+        else:
+            return render(request, 'common/no_permission_to_edit.html')
+    return wrap
+
+
 def require_member_can_write_or_admin_current_project(function):
     def wrap(request, *args, **kwargs):
         if on_project_member_can_write_or_admin(get_current_project(request), request.user):

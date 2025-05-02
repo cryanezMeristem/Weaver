@@ -1,10 +1,11 @@
-{% include "inventory/parts/header.html" %}
+{% extends "organization/parts/membership-base.html" %}
+
+{% block content %}
 {% if membership %}
-{% include "./parts/membership-header.html" %}
 <div id="form-inventory">
-    {% include "inventory/inventory_update_form.html" %}
+    {% include "inventory/parts/inventory_update_form.html" %}
 </div>
 {% else %}
 <div class="alert alert-warning">No membership found.</div>
 {% endif %}
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

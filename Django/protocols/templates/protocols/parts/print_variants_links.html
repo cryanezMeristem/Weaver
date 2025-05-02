@@ -1,0 +1,5 @@
+{% for variant in recipe.variant_set.all %}
+<a href="{% url 'variant' variant_id=variant.id %}" class="btn btn-outline-secondary" role="button">
+    {{variant}}
+</a>
+{% endfor %}

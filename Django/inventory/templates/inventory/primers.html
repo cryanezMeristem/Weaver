@@ -1,16 +1,16 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
 {% load primer_extras %}
 {% load humanize %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 m-0 align-middle">Primers</span>
-    </div>
-    <div id="header-links">
-        <a href="{% url 'primer_create' %}" class="btn btn-primary{% if not on_current_project_member_can_write_or_admin %} disabled{% endif %}" role="button" target="_blank"><i
+
+{% block header_object_name %}Primers{% endblock %}
+{% block header_object_links %}
+    {% include "inventory/parts/show_from_all_projects.html" %}
+    <a href="{% url 'primer_create' %}" class="btn btn-primary{% if not on_current_project_member_can_write_or_admin %} disabled{% endif %}" role="button" target="_blank"><i
                 class="bi bi-plus"></i></a>
-    </div>
-    {% include "./parts/show_from_all_projects.html" %}
-</div>
+{% endblock %}
+
+
+{% block content %}
 {% include "./form_results.html" %}
 {% if primers %}
 <table class="table table-striped table-hover">
@@ -49,4 +49,4 @@
 {% else %}
 <div class="alert alert-warning">No primers found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

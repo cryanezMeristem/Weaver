@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+{% load static %}
+{% load general_extras %}
+<html lang="en"
+      {% if request.COOKIES.dark_mode == 'true' %}data-bs-theme="dark"{% endif%}
+>
+<head>
+{% with version="?version=29" %}
+    <meta charset="UTF-8">
+    <link href="{% static 'css/googleapis-css2.css' %}{{version}}" rel="stylesheet">
+    <title>Weaver</title>
+    <link rel="shortcut icon" href="{% static 'img/favicon.png' %}{{version}}">
+
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/style.css' %}{{version}}"/>
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/style_inventory.css' %}{{version}}"/>
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/style_protocols.css' %}{{version}}"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.min.css">
+    <link rel="stylesheet" type="text/css" media="print" href="{% static 'css/style_inventory_print.css' %}{{version}}"/>
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/style-dark.css' %}{{version}}"/>
+    <!-- /CSS -->
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/js-cookie@3.0.5/dist/js.cookie.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    <script type="text/javascript" src="{% static 'js/jquery-3.6.0.min.js' %}{{version}}"></script>
+    <script type="text/javascript" src="{% static 'js/inventory.js' %}{{version}}"></script>
+    <script type="text/javascript" src="{% static 'js/protocols.js' %}{{version}}"></script>
+    <script type="text/javascript" src="{% static 'js/qrcode.min.js' %}{{version}}"></script>
+    <script type="text/javascript" src="{% static 'js/table_search.js' %}{{version}}"></script>
+    {% if request.get_full_path == "/inventory/plasmid/create/wizard" %}
+    <script defer type="text/javascript" src="{% static 'js/wizard.js' %}{{version}}"></script>
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/wizard.css' %}{{version}}"/>
+    {% endif %}
+    {% if request.get_full_path == "/inventory/services/gtr/" %}
+    <script defer type="text/javascript" src="{% static 'js/gtr.js' %}{{version}}"></script>
+    {% endif %}
+    {% if request.get_full_path == "/inventory/services/l0d/" %}
+    <script defer type="text/javascript" src="{% static 'js/l0d.runtime.js' %}{{version}}"></script>
+    <script defer type="text/javascript" src="{% static 'js/l0d.2.js' %}{{version}}"></script>
+    <script defer type="text/javascript" src="{% static 'js/l0d.js' %}{{version}}"></script>
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/l0d.css' %}{{version}}"/>
+    {% endif %}
+    <!-- /JS -->
+
+    <!-- Sorteable tables -->
+    <link rel="stylesheet" type="text/css" media="all" href="{% static 'css/bootstrap-sortable.css' %}{{version}}"/>
+    <script type="text/javascript" src="{% static 'js/moment.min.js' %}{{version}}"></script>
+    <script type="text/javascript" src="{% static 'js/bootstrap-sortable.js' %}{{version}}"></script>
+    <!-- /Sorteable tables -->
+    <!-- /plasmid sequence viewer -->
+
+    <!-- Select2 -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+    <!-- /Select2 -->
+
+    <!-- OVE -->
+    <!-- <link rel="stylesheet" type="text/css" href="https://unpkg.com/@teselagen/ove/style.css{{version}}" /> -->
+    <link rel="stylesheet" type="text/css" href="{% static 'css/open-vector-editor-style.css' %}{{version}}" />
+    <script type="text/javascript" src="{% static 'js/bio-parsers.js' %}{{version}}"></script>
+    <!-- /OVE -->
+{% endwith %}
+</head>
+<body>
+<nav>
+    <div class="container py-3">
+        <div id="nav-wrapper" class="row">
+            {% if request.path == '/' and not user.is_authenticated %}
+                <div id="nav-logo-full" class="col-3">
+                    <a href="/">
+                            {% if request.COOKIES.dark_mode == 'true' %}
+                                <img src="{% static 'img/logo-dark.png' %}{{version}}" alt="Weaver Logo Dark" />
+                            {% else %}
+                                <img src="{% static 'img/logo.png' %}{{version}}" alt="Weaver Logo" />
+                            {% endif %}
+                    </a>
+                </div>
+                <div class="col-3">
+                </div>
+            {% else %}
+                <div id="nav-logo" class="col-1">
+                    <a href="/">
+                        <img src="{% static 'img/isotype.png' %}{{version}}" alt="Weaver Isotype" />
+                    </a>
+                </div>
+                <div id="nav-menu-container" class="col-5 mt-3">
+                    {% if user.is_authenticated %}
+                        {% if request.COOKIES.dark_mode == 'true' %}
+                            {% include "inventory/parts/header-nav-menu.html" with btn_class="btn-dark" %}
+                        {% else %}
+                            {% include "inventory/parts/header-nav-menu.html" with btn_class="btn-light" %}
+                        {% endif %}
+                    {% endif %}
+                </div>
+            {% endif %}
+            <div id="nav-right" class="col-6 mt-3">
+                <div id="nav-session" class="nav justify-content-end">
+                    {% if user.is_authenticated %}
+                    <button class="btn me-2" id="btnSwitchDarkMode">
+                        <i class="bi bi-moon{% if request.COOKIES.dark_mode == 'true' %}-fill{% endif%}"></i>
+                    </button>
+                    <div class="btn-group me-2 dropdown-center">
+                        <button role="button" class="btn btn-primary border border-light opacity-50">{% with request.COOKIES.current_project_id as cpi %}
+                          {% if cpi %}
+                          <a class="text-light" href="{% url 'project' project_id=request.COOKIES.current_project_id %}">{{cpi|get_project_name}}</a>
+                          {% else %}
+                          No project set
+                          {% endif %}
+                          {% endwith %}</button>
+                        <button type="button" class="btn btn-primary opacity-75 dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                            <span class="visually-hidden">Toggle Dropdown</span>
+                        </button>
+                        <ul class="dropdown-menu">
+                          {% for m in user.membership_set.all %}
+                          <li><a class="dropdown-item text-center small" href="{% url 'project_set_current' pk=m.project.id %}?next={{request.get_full_path}}">{{m.project}}</a></li>
+                          {% endfor %}
+                          <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item text-center small" href="{% url 'project_create' %}">+ Create</a></li>
+                        </ul>
+                    </div>
+                    <a href="{% url 'projects' %}" class="btn btn-primary me-2 btn-sm" role="button">All Projects</a>
+                    <a href="{% url 'profile' %}" class="btn btn-outline-secondary me-2 btn-sm" role="button">Profile / {{ user.get_username }}</a>
+                    <form method="post" action="{% url 'logout_view' %}" id="logout_form">{% csrf_token %}
+                        <button type="submit" class="btn btn-outline-secondary btn-sm" role="button" id="logout">
+                            Logout <i class="bi bi-box-arrow-right"></i>
+                        </button>
+                    </form>
+                    {% else %}
+                    <a href="{% url 'login_view' %}" class="btn btn-primary mt-4" role="button">Login</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</nav>
+<div id="header-container" class="mb-2">
+    <div class="container">
+        {% block header %}
+        <div id="header" class="d-flex py-4">
+            <div id="header-element" class="me-auto">
+                {% block header_element %}
+                <span class="badge text-dark text-secondary opacity-50 p-1 ps-0 fs-2 m-0 fw-lighter align-middle">
+                    {% block header_object_type %}{% endblock %}
+                </span>
+                <span class="badge text-dark fw-light fs-2 p-1 m-0 align-middle">
+                    {% block header_object_name %}{% endblock %}
+                </span>
+                <span class="badge text-bg-light border fw-normal p-1 fs-3 fw-light m-0 align-middle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Part ID">
+                    {% block header_object_id %}{% endblock %}
+                </span>
+                <span class="badge text-dark fw-light fs-6 p-1 m-0 align-middle">
+                    {% block header_object_adds %}{% endblock %}{% endblock %}
+                </span>
+            </div>
+            <div id="header-links">
+                {% block header_object_links %}{% endblock %}
+            </div>
+        </div>
+        {% endblock %}
+    </div>
+</div>
+<div id="content-container">
+    <div class="container pt-2">
+        {% block content %}
+            <div class="alert alert-warning">
+                Nothing here
+            </div>
+        {% endblock %}
+    </div>
+</div>
+<div id="footer-container">
+    <div class="container pt-2">
+        <div id="footer">
+            <div class="row">
+                <div class="col-6">
+                    {% if user.is_authenticated and user.is_staff %}
+                    <p id="admin_site-link">
+                        <a href="/admin">Admin site</a>
+                    </p>
+                    {% endif %}
+                    <p>Code by <a href="https://meristem.bio" target="_blank">Meristem</a> [<a
+                            href="https://github.com/Meristembio/Weaver" target="_blank">GitHub</a>]</p>
+                </div>
+                <div class="col-6 d-flex justify-content-end">
+                    <img src="{% static 'img/footer.png' %}{{version}}" alt="Weaver footer" />
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

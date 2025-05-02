@@ -1,10 +1,11 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/primer-base.html" %}
+
+{% block content %}
 {% if primer %}
-{% include "./parts/primer-header.html" %}
 <div id="form-inventory">
-    {% include "./inventory_update_form.html" %}
+    {% include "inventory/parts/inventory_update_form.html" %}
 </div>
 {% else %}
 <p>No Primer found.</p>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

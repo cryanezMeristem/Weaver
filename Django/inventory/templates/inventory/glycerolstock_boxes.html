@@ -1,19 +1,18 @@
-{% include "./parts/header.html" %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 m-0 align-middle">Stocks Boxes</span>
-    </div>
-    <div id="header-links">
-        <a href="{% url 'glycerolstocks' %}" class="btn btn-outline-danger" role="button"><i class="bi bi-arrow-return-left"></i></a>
-    </div>
-    {% include "./parts/show_from_all_projects.html" %}
-</div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_type %}Stocks{% endblock %}
+{% block header_object_name %}Boxes{% endblock %}
+{% block header_object_links %}
+    <a href="{% url 'glycerolstocks' %}" class="btn btn-outline-danger" role="button"><i class="bi bi-arrow-return-left"></i></a>
+    {% include "inventory/parts/show_from_all_projects.html" %}
+{% endblock %}
+
+{% block content %}
 {% if collection.locations %}
 {% for location in collection.locations %}
     {% include "./glycerolstock_render_boxes.html" %}
 {% endfor %}
-{% include "./parts/footer.html" %}
 {% else %}
 <div class="alert alert-warning">No locations found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

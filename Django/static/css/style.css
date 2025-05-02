@@ -155,24 +155,13 @@ span.helptext {
     font-size: .8em;
 }
 /* header */
-div#header,
-div.extra_header {
-    margin-bottom: 1rem;
-    display: flex;
-}
-div.extra_header {
+div.extra_header{
     margin-top: 2rem;
-}
-div#header > *:not(:first-child),
-div.extra_header > *:not(:first-child) {
-    margin-left: 1rem;
-    align-self: center;
 }
 
 div#header h1,
 div.extra_header h1 {
     font-size: 2rem;
-    margin: 0;
 }
 div#nav-logo a {
     color: #333;
@@ -180,11 +169,18 @@ div#nav-logo a {
 div#nav-logo a:hover {
     text-decoration: none;
 }
+div#nav-logo-full img {
+    width: 100%;
+}
 div#nav-logo img {
-    width: 18em;
+    width: 100%;
+    max-width: 3em;
 }
 #nav-menu a:hover{
     text-decoration: none;
+}
+div#header-container {
+    background: rgb(242, 244, 247);
 }
 /* footer */
 div#footer {

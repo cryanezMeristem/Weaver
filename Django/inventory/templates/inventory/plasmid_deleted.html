@@ -1,6 +1,8 @@
-{% include "./parts/header.html" %}
-<div id="header">
-    <h1><span class="text-secondary opacity-50 me-2 fs-3">Plasmid</span><span>Deleted</span></h1>
-</div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_type %}Plasmid{% endblock %}
+{% block header_object_name %}Deleted{% endblock %}
+
+{% block content %}
 <div class="alert alert-danger">Plasmid has been deleted</div>
-{% include "./parts/footer.html" %}
+{% endblock %}

@@ -1,8 +1,9 @@
-{% include "inventory/parts/header.html" %}
-{% include "./parts/component-header.html" %}
+{% extends "protocols/parts/component-base.html" %}
+
+{% block content %}
 {% include "inventory/form_results.html" %}
 <div class="alert alert-danger">Editing this component will affect all recipes that contain it</div>
 <div id="form-recipe">
-    {% include "inventory/inventory_delete_form.html" %}
+    {% include "inventory/parts/inventory_delete_form.html" %}
 </div>
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

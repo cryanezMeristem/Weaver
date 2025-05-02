@@ -1,0 +1,15 @@
+<a href="{% url 'plasmid' plasmid_id=pr.id %}" class="btn {%if extra_class%}{{extra_class}}{% else %}btn-outline-secondary{% endif %}"
+   role="button">
+    <span>{{pr.name}}</span>
+    <span class="badge text-bg-light border fw-light p-1 fw-light m-0 align-middle" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Part ID">{{pr.idx}}</span>
+</a>
+<span class="plasmid-opts">
+{% if not hide_validation_status %}
+    {% with get_check_state=pr.get_check_state %}
+    <span>
+        <i class="bi {% if get_check_state == 'r' %}bi-bookmarks{% elif get_check_state == 'v' %}bi-check-circle{% else %}bi bi-hammer{% endif %}" data-bs-toggle="tooltip" data-bs-placement="top" aria-label="{% if get_check_state == 'r' %}Reference{% elif get_check_state == 'v' %}Validated{% else %}Under construction{% endif %}" data-bs-original-title="{% if get_check_state == 'r' %}Reference{% elif get_check_state == 'v' %}Validated{% else %}Under construction{% endif %}"></i>
+    </span>
+    {% endwith %}
+{% endif %}
+<i class="bi bi-clipboard copy_clipboard" data-bs-toggle="tooltip" data-bs-placement="top" data-bs-custom-class="custom-tooltip" data-bs-title="Copy name & ID" data-cc="{{pr}}"></i>
+</span>

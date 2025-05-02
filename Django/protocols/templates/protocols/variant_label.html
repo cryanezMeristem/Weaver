@@ -1,0 +1,39 @@
+{% extends "protocols/parts/variant-base.html" %}
+{% load general_extras %}
+{% load static %}
+
+{% block content %}
+<link rel="stylesheet" type="text/css" media="print" href="{% static 'css/style_inventory_print.css' %}"/>
+{% if variant %}
+<div id="label">
+    <div id="label-main">
+        <div id="label-info">
+            <p id="label-name" data-initval="{{variant}}">
+                {{variant.name}}
+            </p>
+            <p id="label-created">
+                <span class="label-name">Code</span>
+                <span class="label-value">{{variant.idx}}</span>
+            </p>
+            <p id="label-created">
+                <span class="label-name">Date</span>
+                <span class="label-value">{{date}}</span>
+            </p>
+            <p id="label-components">
+                <span class="label-name">Components</span>
+                {% for component in recipe.components.all %}
+                <span class="label-value">{{component.reactive}} - <span class="recipe-component-value" data-initval="{{component.concentration}}">{{component.concentration}}</span> {{CONCENTRATION_UNITS_dict|get_element_by_key:component.concentration_unit}}</span>
+                {% endfor %}
+                {% for component in variant.optional_components.all %}
+                <span class="label-value">{{component.reactive}} - <span class="recipe-component-value" data-initval="{{component.concentration}}">{{component.concentration}}</span> {{CONCENTRATION_UNITS_dict|get_element_by_key:component.concentration_unit}}</span>
+                {% endfor %}
+            </p>
+        </div>
+    </div>
+</div>
+<p id="recipe-concentration-wrapper"><span>Select variant concentration (X): </span><input type="number" id="recipe-concentration" value="1" /></p>
+<button id="label-print-button" type="button" class="btn btn-info" onclick="window.print();return false;">Print label</button>
+{% else %}
+<div class="alert alert-warning">No variant found.</div>
+{% endif %}
+{% endblock %}

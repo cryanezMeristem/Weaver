@@ -2,8 +2,11 @@ from django.urls import path
 
 from . import views
 from .views import RecipeEdit
+from .views import VariantEdit
 from .views import RecipeCreate
+from .views import VariantCreate
 from .views import RecipeDelete
+from .views import VariantDelete
 from .views import ComponentEdit
 from .views import ComponentCreateReturnToRecipe
 from .views import ComponentCreate
@@ -22,6 +25,12 @@ urlpatterns = [
     path('recipe/edit/<uuid:pk>/', login_required(RecipeEdit.as_view(), redirect_field_name='next'), name='recipe_edit'),
     path('recipe/delete/<uuid:pk>/', login_required(RecipeDelete.as_view(), redirect_field_name='next'), name='recipe_delete'),
     path('recipe/label/<uuid:recipe_id>/', login_required(views.recipe_label, redirect_field_name='next'), name='recipe_label'),
+
+    path('variant/<uuid:variant_id>', login_required(views.variant, redirect_field_name='next'), name='variant'),
+    path('recipe/<uuid:recipe_id>/variant/create/', login_required(VariantCreate.as_view(), redirect_field_name='next'), name='variant_create'),
+    path('variant/label/<uuid:variant_id>/', login_required(views.variant_label, redirect_field_name='next'), name='variant_label'),
+    path('variant/edit/<uuid:pk>/', login_required(VariantEdit.as_view(), redirect_field_name='next'), name='variant_edit'),
+    path('variant/delete/<uuid:pk>/', login_required(VariantDelete.as_view(), redirect_field_name='next'), name='variant_delete'),
 
     path('component/create/', login_required(ComponentCreate.as_view(), redirect_field_name='next'), name='component_create'),
     path('component/create/return_to_recipe/<uuid:recipe_id>/', login_required(ComponentCreateReturnToRecipe.as_view(), redirect_field_name='next'), name='component_create_return_to_recipe'),

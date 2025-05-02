@@ -1,0 +1,31 @@
+{% load humanize %}
+<table class="table sortable">
+    <thead>
+    <th scope="col">Added</th>
+    <th scope="col">Reactive</th>
+    <th scope="col">Stock</th>
+    <th scope="col">Mass/Volume</th>
+    <th scope="col">Unit</th>
+    </thead>
+    <tbody>
+    {% for component in result %}
+    {% if component.0.is_autoclavable == autoclavable_show %}
+    <tr>
+        <td>
+            <input type="checkbox" class="recipe-table-checkbox" />
+        </td>
+        <td>{{component.0}}</td>
+        <td>{{component.0.get_state_concentration_text}}</td>
+        <td>
+        {% if component.3 %}
+            <span class="bg-danger text-light p-1">{{component.1}}</span>
+        {% else %}
+            {{component.1|floatformat:"2"|intcomma}}
+        {% endif %}
+        </td>
+        <td>{{component.2}}</td>
+    </tr>
+    {% endif %}
+    {% endfor %}
+    </tbody>
+</table>

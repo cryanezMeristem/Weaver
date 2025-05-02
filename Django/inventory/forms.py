@@ -3,7 +3,7 @@ from django import forms
 from .models import Plasmid
 from .models import Primer
 from .models import GlycerolStock
-from .custom.standards import ligation_standards
+from .custom.standards import assembly_standards
 from organization.views import get_projects_where_member_can
 from organization.views import get_projects_where_member_can_any
 
@@ -30,11 +30,11 @@ class BlastSequenceInput(forms.Form):
 class L0SequenceInput(forms.Form):
     l0_sequence_input = forms.CharField(widget=forms.Textarea, label="Sequence input")
     # Todo append None
-    ligation_standard_slug = forms.ChoiceField(choices=tuple([(index, ligation_standard['name']) for index, ligation_standard in ligation_standards.items()]),
+    assembly_standard_slug = forms.ChoiceField(choices=tuple([(index, assembly_standard['name']) for index, assembly_standard in assembly_standards.items()]),
                                 required=True, label="Ligation standard")
-    l0_oh_5 = forms.ChoiceField(choices=tuple([(oh_slug, oh['name'] + " [" + oh['oh'] + "]") for index, ligation_standard in ligation_standards.items() for oh_slug, oh in ligation_standard['ohs']['l0'].items()]),
+    l0_oh_5 = forms.ChoiceField(choices=tuple([(oh_slug, oh['name'] + " [" + oh['oh'] + "]") for index, assembly_standard in assembly_standards.items() for oh_slug, oh in assembly_standard['ohs']['l0'].items()]),
                                 required=True, label="L0 OH 5'")
-    l0_oh_3 = forms.ChoiceField(choices=tuple([(oh_slug, oh['name'] + " [" + oh['oh'] + "]") for index, ligation_standard in ligation_standards.items() for oh_slug, oh in ligation_standard['ohs']['l0'].items()]),
+    l0_oh_3 = forms.ChoiceField(choices=tuple([(oh_slug, oh['name'] + " [" + oh['oh'] + "]") for index, assembly_standard in assembly_standards.items() for oh_slug, oh in assembly_standard['ohs']['l0'].items()]),
                                 required=True, label="L0 OH 3'")
     enzyme = forms.CharField(required=True, widget=forms.HiddenInput())
 
@@ -86,7 +86,7 @@ class PlasmidCreateForm(forms.ModelForm):
     class Meta:
         model = Plasmid
         fields = ['name', 'selectable_markers', 'sequence', 'backbone', 'inserts', 'intended_use', 'type', 'level',
-                  'description', 'created_on']
+                  'description', 'project', 'ligation_state', 'created_on']
 
 
 class PlasmidEditForm(forms.ModelForm):
@@ -101,13 +101,13 @@ class PlasmidEditForm(forms.ModelForm):
     class Meta:
         model = Plasmid
         fields = ['name', 'selectable_markers', 'sequence', 'backbone', 'inserts', 'intended_use', 'type', 'level',
-                  'description', 'created_on', 'project', 'reference_sequence', 'under_construction']
+                  'description', 'created_on', 'project', 'ligation_state', 'reference_sequence']
 
 
 class PlasmidValidationForm(forms.ModelForm):
     class Meta:
         model = Plasmid
-        fields = ['working_colony',
+        fields = ['ligation_state', 'working_colony',
                   'colonypcr_state', 'colonypcr_date', 'colonypcr_observations',
                   'digestion_state', 'digestion_date', 'digestion_observations',
                   'sequencing_state', 'sequencing_date', 'sequencing_observations',

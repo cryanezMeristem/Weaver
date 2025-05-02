@@ -1,13 +1,12 @@
-{% include "inventory/parts/header.html" %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 ps-0 m-0 align-middle">Recipes</span>
-    </div>
-    <div id="header-links">
-        <a href="{% url 'recipe_create' %}" class="btn btn-primary" role="button"><i class="bi bi-plus"></i></a>
-    </div>
+{% extends "inventory/parts/base.html" %}
+
+{% block header_object_name %}Recipes{% endblock %}
+{% block header_object_links %}
     {% include "inventory/parts/show_from_all_projects.html" with text="or just mine" %}
-</div>
+    <a href="{% url 'recipe_create' %}" class="btn btn-primary" role="button"><i class="bi bi-plus"></i></a>
+{% endblock %}
+
+{% block content %}
 {% include "inventory/form_results.html" %}
 {% if recipes %}
 <div id="recipes-list">
@@ -28,6 +27,7 @@
         <th scope="col">Recipe</th>
         <th scope="col" data-defaultsort='disabled'>Actions</th>
         <th scope="col" data-defaultsort='disabled'>Components</th>
+        <th scope="col" data-defaultsort='disabled'>Variants</th>
         <th scope="col">Owner</th>
     </tr>
     </thead>
@@ -35,7 +35,10 @@
     {% for recipe in recipes %}
     <tr class="filter-item {% if recipe.category %}{% for cat in recipe.category.all %}filter-{{cat}} {% endfor %}{% endif %}">
         <td>
-            <a class="btn btn-success table-search-search_on" role="button" href="{% url 'recipe' recipe_id=recipe.id %}" data-search={{recipe}}>{{recipe}}</a>
+            <a class="btn btn-success table-search-search_on" role="button" href="{% url 'recipe' recipe_id=recipe.id %}" data-search={{recipe}}>
+                <span class="recipe_list-name">{{recipe}}</span>
+                <span class="recipe_list-id badge text-bg-light text-success ms-1">{{recipe.idx}}</span>
+            </a>
             {% if recipe.owner == request.user %}
             <a href="{% url 'recipe_edit' pk=recipe.id %}" class="btn text-secondary" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Edit"><i class="bi bi-pencil-fill"></i></a>
             {% endif %}
@@ -65,6 +68,12 @@
                 </div>
             </div>
         </td>
+        <td>
+            {% include "./parts/print_variants_links.html" %}
+            {% if recipe.user_can_edit_recipe %}
+            <a href="{% url 'variant_create' recipe_id=recipe.id %}" class="btn btn-primary" role="button"><i class="bi bi-plus"></i></a>
+            {% endif %}
+        </td>
         <td>{{recipe.owner.last_name}}, {{recipe.owner.first_name}}</td>
     </tr>
     {% endfor %}
@@ -75,4 +84,4 @@
 {% else %}
 <div class="alert alert-warning">No recipes found.</div>
 {% endif %}
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

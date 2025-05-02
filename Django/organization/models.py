@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from inventory.custom.standards import assembly_standards
 
 
 class Project(models.Model):
@@ -9,6 +10,8 @@ class Project(models.Model):
     members = models.ManyToManyField(User, through='Membership', related_name='project_members',
                                      help_text="User Ctrl to select more than one member")
     public = models.BooleanField(help_text='Is it publicly viewable?')
+    assembly_standard = models.CharField(max_length=10, help_text="Project assembly standard", null=True, blank=True,
+                                         choices=[(key, value['name']) for key, value in assembly_standards.items()])
 
     def __str__(self):
         return self.name
@@ -31,4 +34,4 @@ class Membership(models.Model):
         for apo in access_policies_options:
             if apo[0] == self.access_policies:
                 access_policies_text = apo[1]
-        return str(self.member) + " - " + str(self.project) + ": " + access_policies_text
+        return str(self.member) + " on " + str(self.project) + " can " + access_policies_text

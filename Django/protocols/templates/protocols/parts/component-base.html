@@ -1,0 +1,12 @@
+{% extends 'inventory/parts/base.html' %}
+
+{% if component %}
+{% block header_object_type %}Component{% endblock %}
+{% block header_object_name %}{{component}}{% endblock %}
+{% block header_object_links %}
+        {% include './create_reactive_button.html' %}
+        <a href="{% url 'component_delete' pk=component.id recipe_id=view.kwargs.recipe_id %}" class="btn btn-outline-danger" role="button" data-bs-toggle="tooltip" data-bs-placement="top" title="Trash"><i
+                class="bi bi-trash"></i></a>
+        <a href="{% url 'recipe' recipe_id=view.kwargs.recipe_id %}" class="btn btn-outline-warning" role="button"><i class="bi bi-arrow-return-left"></i></a>
+{% endblock %}
+{% endif %}

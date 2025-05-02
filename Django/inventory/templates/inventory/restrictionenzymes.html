@@ -1,10 +1,9 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/base.html" %}
 {% load re_extras %}
-<div id="header">
-    <div id="header-element">
-        <span class="badge text-dark fw-light fs-2 p-1 m-0 align-middle">Restriction Enzymes</span>
-    </div>
-</div>
+
+{% block header_object_name %}Restriction enzymes{% endblock %}
+
+{% block content %}
 {% include "./form_results.html" %}
 {% if restrictionenzymes %}
 <table class="table table-striped table-hover">
@@ -73,4 +72,4 @@
 {% else %}
 <div class="alert alert-warning">No Restriction Enzymes found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}

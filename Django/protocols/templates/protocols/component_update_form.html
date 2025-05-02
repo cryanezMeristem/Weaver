@@ -1,6 +1,7 @@
-{% include "inventory/parts/header.html" %}
+{% extends "protocols/parts/component-base.html" %}
+
+{% block content %}
 {% if component %}
-{% include "./parts/component-header.html" %}
 {% include "inventory/form_results.html" %}
 <div class="alert alert-warning">Editing this component will affect all recipes that contain it</div>
 <div id="form-inventory">
@@ -13,4 +14,4 @@
 {% else %}
 <div class="alert alert-warning">No component found.</div>
 {% endif %}
-{% include "inventory/parts/footer.html" %}
+{% endblock %}

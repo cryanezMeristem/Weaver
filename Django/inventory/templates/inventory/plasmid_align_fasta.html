@@ -1,8 +1,9 @@
-{% include "./parts/header.html" %}
+{% extends "inventory/parts/plasmid-base.html" %}
 {% load static %}
+
+{% block content %}
 <link rel="stylesheet" type="text/css" media="print" href="{% static 'css/style_inventory_print.css' %}"/>
 {% if plasmid %}
-{% include "./parts/plasmid-header.html" %}
 {% if not show_upload_form and not save_clustal_done and not save_clustal_error %}
 <p>
 <a href="{% url 'plasmid_align_fasta' plasmid_id=plasmid.id %}" class="btn btn-outline-primary" role="button"><i class="bi bi-plus-circle-dotted"></i> New alignment</a>
@@ -96,4 +97,4 @@
 {% else %}
 <div class="alert alert-warning">No plasmid found.</div>
 {% endif %}
-{% include "./parts/footer.html" %}
+{% endblock %}
