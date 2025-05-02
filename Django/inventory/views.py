@@ -238,6 +238,31 @@ def gstock_check_pos(the_class, the_self, the_form):
         return super(the_class, the_self).form_valid(the_form)
 
 
+def build_box(request, mode, box):
+    box_output = {
+        'name': box.name,
+        'id': box.id
+    }
+    if mode == 'p':
+        glycerolstocks = box.glycerolstock_set.all()
+    else:
+        if get_show_from_all_projects(request):
+            glycerolstocks = box.glycerolstock_set.filter(
+                project_id__in=get_projects_where_member_can_any(request.user))
+        else:
+            glycerolstocks = box.glycerolstock_set.filter(project_id=get_current_project_id(request))
+
+    anyGs = False
+    for glycerolstock in glycerolstocks:
+        array_pos = str(glycerolstock.box_row) + str(glycerolstock.box_column)
+        if not array_pos in box_output:
+            box_output[array_pos] = []
+        box_output[array_pos].append(glycerolstock)
+        anyGs = True
+
+    return anyGs, box_output
+
+
 def build_boxes(request, mode):
     output = {
         'BOX_ROWS': BOX_ROWS,
@@ -247,26 +272,7 @@ def build_boxes(request, mode):
     for location in Location.objects.all():
         boxes = []
         for box in Box.objects.filter(location=location).order_by('name'):
-            box_output = {
-                'name': box.name,
-                'id': box.id
-            }
-            if mode == 'p':
-                glycerolstocks = box.glycerolstock_set.all()
-            else:
-                if get_show_from_all_projects(request):
-                    glycerolstocks = box.glycerolstock_set.filter(
-                        project_id__in=get_projects_where_member_can_any(request.user))
-                else:
-                    glycerolstocks = box.glycerolstock_set.filter(project_id=get_current_project_id(request))
-
-            anyGs = False
-            for glycerolstock in glycerolstocks:
-                array_pos = str(glycerolstock.box_row) + str(glycerolstock.box_column)
-                if not array_pos in box_output:
-                    box_output[array_pos] = []
-                box_output[array_pos].append(glycerolstock)
-                anyGs = True
+            anyGs, box_output = build_box(request, mode, box)
 
             if anyGs or mode == 'p':
                 boxes.append(box_output)
@@ -395,13 +401,15 @@ def glycerolstock_box(request, box_id):
         the_box = Box.objects.get(id=box_id)
     except ObjectDoesNotExist:
         raise Http404
+
+    anyGs, box = build_box(request, 'n', the_box)
     context = {
         'collection': {
             'BOX_ROWS': BOX_ROWS,
             'BOX_COLUMNS': BOX_COLUMNS,
         },
         'render_mod': 'n',
-        'box': the_box
+        'box': box
     }
     return render(request, 'inventory/glycerolstock_box.html', context)
 

@@ -2,7 +2,7 @@
 
 {%if glycerolstock %}
 {% block header_object_type %}Stock{% endblock %}
-{% block header_object_name %}{{glycerolstock.strain}} / {{glycerolstock.plasmid.name}}{% endblock %}
+{% block header_object_name %}{{glycerolstock.strain}}{% if glycerolstock.plasmid.name %} / {{glycerolstock.plasmid.name}}{% endif %}{% endblock %}
 {% block header_object_id %}{{glycerolstock.plasmid.idx}}{% endblock %}
 {% block header_object_links %}
         {% if user_can_edit_gs %}
