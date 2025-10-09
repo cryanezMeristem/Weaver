@@ -123,3 +123,7 @@ logs/
 # React/JavaScript specific #
 *.tsbuildinfo
 .eslintcache
+
+# Requirements.txt file since the Amazon production file varies in library versions
+requirements.txt
+
